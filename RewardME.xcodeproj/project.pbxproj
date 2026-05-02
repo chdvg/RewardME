@@ -67,7 +67,7 @@
 		BB415A4082ED40B5A4D174C9 /* RewardME */ = {
 			isa = PBXGroup;
 			children = (
-				FADFBB213C784DA6A5642AEE /* RewardME */,
+				AC12345678901234567890AB /* RewardME */,
 				823E1AA14D154ED3B6A51336 /* RewardMETests */,
 				02C7D0B222C24444831EF90A /* Products */,
 			);
@@ -82,8 +82,8 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		FADFBB213C784DA6A5642AEE /* RewardME */ = {
-			isa = PBXGroup;
+		AC12345678901234567890AB /* RewardME */ = {
+            isa = PBXGroup;
 			children = (
 				B2C92DCB1D6746AD919E8218 /* RewardMEApp.swift */,
 				51E48ACBDCCF45BABE554301 /* ContentView.swift */,
@@ -147,7 +147,7 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		FADFBB213C784DA6A5642AEE /* RewardME */ = {
+		AC12345678901234567890AB /* RewardME */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 78EC5CCD3B9F4A3E8A85F90B /* Build configuration list for PBXNativeTarget "RewardME" */;
 			buildPhases = (
@@ -190,7 +190,7 @@
 				LastSwiftUpdateCheck = 1540;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
-					FADFBB213C784DA6A5642AEE = {
+					AC12345678901234567890AB = {
 						CreatedOnToolsVersion = 15.4;
 					};
 					823E1AA14D154ED3B6A51336 = {
@@ -212,7 +212,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				FADFBB213C784DA6A5642AEE /* RewardME */,
+				AC12345678901234567890AB /* RewardME */,
 				823E1AA14D154ED3B6A51336 /* RewardMETests */,
 			);
 		};
