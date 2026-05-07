@@ -67,7 +67,7 @@
 		BB415A4082ED40B5A4D174C9 /* RewardME */ = {
 			isa = PBXGroup;
 			children = (
-				AC12345678901234567890AB /* RewardME */,
+				CC12345678901234567890AB /* RewardME */,
 				823E1AA14D154ED3B6A51336 /* RewardMETests */,
 				02C7D0B222C24444831EF90A /* Products */,
 			);
@@ -82,7 +82,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		AC12345678901234567890AB /* RewardME */ = {
+		CC12345678901234567890AB /* RewardME */ = {
             isa = PBXGroup;
 			children = (
 				B2C92DCB1D6746AD919E8218 /* RewardMEApp.swift */,
@@ -195,7 +195,7 @@
 					};
 					823E1AA14D154ED3B6A51336 = {
 						CreatedOnToolsVersion = 15.4;
-						TestTargetID = FADFBB213C784DA6A5642AEE;
+						TestTargetID = AC12345678901234567890AB;
 					};
 				};
 			};
