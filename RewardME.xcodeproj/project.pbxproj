@@ -68,7 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				CC12345678901234567890AB /* RewardME */,
-				823E1AA14D154ED3B6A51336 /* RewardMETests */,
+				BB823E1AA14D154ED3B6A513 /* RewardMETests */,
 				02C7D0B222C24444831EF90A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -136,7 +136,7 @@
 			path = Persistence;
 			sourceTree = "<group>";
 		};
-		823E1AA14D154ED3B6A51336 /* RewardMETests */ = {
+		BB823E1AA14D154ED3B6A513 /* RewardMETests */ = {
 			isa = PBXGroup;
 			children = (
 				944E4DDFF4C34C50AF8A7A9D /* RewardMETests.swift */,
