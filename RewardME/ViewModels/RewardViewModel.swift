@@ -51,8 +51,8 @@ final class RewardViewModel: ObservableObject {
 
     // MARK: - Task management
 
-    func addTask(title: String, notes: String = "", difficulty: TaskDifficulty = .easy) {
-        let task = TaskItem(title: title, notes: notes, difficulty: difficulty)
+    func addTask(title: String, notes: String = "", difficulty: TaskDifficulty = .easy, recurrence: RecurrenceRule = .none, dueDate: Date? = nil) {
+        let task = TaskItem(title: title, notes: notes, difficulty: difficulty, recurrence: recurrence, dueDate: dueDate)
         tasks.insert(task, at: 0)
         persist()
     }
@@ -118,6 +118,20 @@ final class RewardViewModel: ObservableObject {
 
             updateStreak(completionDay: day)
             checkBadges()
+
+            // Spawn next occurrence for recurring tasks
+            let rule = tasks[idx].recurrence
+            if let nextDue = rule.nextDueDate(from: now) {
+                let completed = tasks[idx]
+                let next = TaskItem(
+                    title: completed.title,
+                    notes: completed.notes,
+                    difficulty: completed.difficulty,
+                    recurrence: rule,
+                    dueDate: nextDue
+                )
+                tasks.append(next)
+            }
         }
 
         persist()
@@ -267,7 +281,10 @@ final class RewardViewModel: ObservableObject {
 
     // MARK: - Computed helpers
 
-    var pendingTasks: [TaskItem] { tasks.filter { !$0.isCompleted } }
+    var pendingTasks: [TaskItem] {
+        let now = Date()
+        return tasks.filter { !$0.isCompleted && ($0.dueDate == nil || $0.dueDate! <= now) }
+    }
     var completedTasks: [TaskItem] { tasks.filter { $0.isCompleted } }
 
     var allBadges: [(definition: BadgeDefinition, earned: EarnedBadge?)] {

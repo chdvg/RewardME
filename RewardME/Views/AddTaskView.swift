@@ -10,6 +10,7 @@ struct AddTaskView: View {
     @State private var title: String = ""
     @State private var notes: String = ""
     @State private var difficulty: TaskDifficulty = .easy
+    @State private var recurrence: RecurrenceRule = .none
 
     private var isEditing: Bool { taskToEdit != nil }
 
@@ -78,6 +79,32 @@ struct AddTaskView: View {
                         }
                     }
                 }
+
+                Section("Recurrence") {
+                    ForEach(RecurrenceRule.allCases) { rule in
+                        Button {
+                            recurrence = rule
+                        } label: {
+                            HStack {
+                                Image(systemName: rule.icon)
+                                    .foregroundColor(.accentColor)
+                                    .frame(width: 24)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(rule.rawValue)
+                                        .foregroundColor(.primary)
+                                    Text(rule.label)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                if recurrence == rule {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.accentColor)
+                                }
+                            }
+                        }
+                    }
+                }
             }
             .navigationTitle(isEditing ? "Edit Task" : "New Task")
             .navigationBarTitleDisplayMode(.inline)
@@ -99,6 +126,7 @@ struct AddTaskView: View {
                 title      = task.title
                 notes      = task.notes
                 difficulty = task.difficulty
+                recurrence = task.recurrence
             }
         }
     }
@@ -111,9 +139,10 @@ struct AddTaskView: View {
             task.title      = trimmed
             task.notes      = notes
             task.difficulty = difficulty
+            task.recurrence = recurrence
             vm.updateTask(task)
         } else {
-            vm.addTask(title: trimmed, notes: notes, difficulty: difficulty)
+            vm.addTask(title: trimmed, notes: notes, difficulty: difficulty, recurrence: recurrence)
         }
         dismiss()
     }

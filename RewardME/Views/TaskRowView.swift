@@ -41,6 +41,16 @@ struct TaskRowView: View {
                         .foregroundColor(task.difficulty.color)
                         .clipShape(Capsule())
 
+                    if task.recurrence != .none {
+                        Label(task.recurrence.rawValue, systemImage: task.recurrence.icon)
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.12))
+                            .foregroundColor(.blue)
+                            .clipShape(Capsule())
+                    }
+
                     if task.isCompleted {
                         Label("\(task.pointsAwarded) pts", systemImage: "star.fill")
                             .font(.caption2)
