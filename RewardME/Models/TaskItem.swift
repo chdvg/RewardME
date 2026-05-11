@@ -49,6 +49,7 @@ struct TaskItem: Identifiable, Codable, Equatable {
     var notes: String
     var difficulty: TaskDifficulty
     var isCompleted: Bool
+    var isCancelled: Bool
     var completedDate: Date?
     var createdDate: Date
     /// Points actually awarded when the task was completed (including streak bonus).
@@ -70,6 +71,7 @@ struct TaskItem: Identifiable, Codable, Equatable {
         self.notes = notes
         self.difficulty = difficulty
         self.isCompleted = false
+        self.isCancelled = false
         self.completedDate = nil
         self.createdDate = Date()
         self.pointsAwarded = 0

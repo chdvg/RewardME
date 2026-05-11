@@ -143,6 +143,18 @@ final class RewardViewModel: ObservableObject {
         persist()
     }
 
+    func cancelTask(_ task: TaskItem) {
+        guard let idx = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+        tasks[idx].isCancelled = true
+        persist()
+    }
+
+    func uncancelTask(_ task: TaskItem) {
+        guard let idx = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+        tasks[idx].isCancelled = false
+        persist()
+    }
+
     // MARK: - Points calculation
 
     /// Base difficulty points × streak multiplier.
@@ -283,9 +295,10 @@ final class RewardViewModel: ObservableObject {
 
     var pendingTasks: [TaskItem] {
         let now = Date()
-        return tasks.filter { !$0.isCompleted && ($0.dueDate == nil || $0.dueDate! <= now) }
+        return tasks.filter { !$0.isCompleted && !$0.isCancelled && ($0.dueDate == nil || $0.dueDate! <= now) }
     }
     var completedTasks: [TaskItem] { tasks.filter { $0.isCompleted } }
+    var cancelledTasks: [TaskItem] { tasks.filter { $0.isCancelled } }
 
     var allBadges: [(definition: BadgeDefinition, earned: EarnedBadge?)] {
         BadgeID.allCases.compactMap { id in

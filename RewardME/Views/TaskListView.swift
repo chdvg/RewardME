@@ -1,14 +1,31 @@
 import SwiftUI
 
+// MARK: - Task filter
+
+private enum TaskFilter: Int, CaseIterable {
+    case pending, done, cancelled
+    func label(vm: RewardViewModel) -> String {
+        switch self {
+        case .pending:   return "Pending (\(vm.pendingTasks.count))"
+        case .done:      return "Done (\(vm.completedTasks.count))"
+        case .cancelled: return "Cancelled (\(vm.cancelledTasks.count))"
+        }
+    }
+}
+
 struct TaskListView: View {
     @EnvironmentObject private var vm: RewardViewModel
 
     @State private var showAddTask = false
     @State private var taskToEdit: TaskItem?
-    @State private var showCompleted = false
+    @State private var filter: TaskFilter = .pending
 
     private var displayedTasks: [TaskItem] {
-        showCompleted ? vm.completedTasks : vm.pendingTasks
+        switch filter {
+        case .pending:   return vm.pendingTasks
+        case .done:      return vm.completedTasks
+        case .cancelled: return vm.cancelledTasks
+        }
     }
 
     var body: some View {
@@ -19,9 +36,10 @@ struct TaskListView: View {
                 } else {
                     List {
                         // ── Segment control ───────────────────────────────────
-                        Picker("", selection: $showCompleted) {
-                            Text("Pending (\(vm.pendingTasks.count))").tag(false)
-                            Text("Done (\(vm.completedTasks.count))").tag(true)
+                        Picker("", selection: $filter) {
+                            ForEach(TaskFilter.allCases, id: \.self) { f in
+                                Text(f.label(vm: vm)).tag(f)
+                            }
                         }
                         .pickerStyle(.segmented)
                         .listRowBackground(Color.clear)
@@ -35,20 +53,36 @@ struct TaskListView: View {
                                     withAnimation { vm.toggleCompletion(of: task) }
                                 }
                                 .swipeActions(edge: .leading) {
-                                    Button {
-                                        taskToEdit = task
-                                    } label: {
-                                        Label("Edit", systemImage: "pencil")
+                                    if filter == .pending {
+                                        Button {
+                                            taskToEdit = task
+                                        } label: {
+                                            Label("Edit", systemImage: "pencil")
+                                        }
+                                        .tint(.blue)
                                     }
-                                    .tint(.blue)
+                                    if filter == .cancelled {
+                                        Button {
+                                            withAnimation { vm.uncancelTask(task) }
+                                        } label: {
+                                            Label("Restore", systemImage: "arrow.uturn.left")
+                                        }
+                                        .tint(.blue)
+                                    }
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
-                                        withAnimation {
-                                            vm.deleteTask(task)
-                                        }
+                                        withAnimation { vm.deleteTask(task) }
                                     } label: {
                                         Label("Delete", systemImage: "trash")
+                                    }
+                                    if filter == .pending {
+                                        Button {
+                                            withAnimation { vm.cancelTask(task) }
+                                        } label: {
+                                            Label("Cancel", systemImage: "xmark.circle")
+                                        }
+                                        .tint(.orange)
                                     }
                                 }
                             }
