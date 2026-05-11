@@ -66,6 +66,19 @@ struct ProfileView: View {
                     }
                 }
 
+                // ── Brag About It ────────────────────────────────────────
+                Section {
+                    ShareLink(
+                        item: vm.braggingText,
+                        preview: SharePreview("My RewardME Stats", image: Image(systemName: "trophy.fill"))
+                    ) {
+                        Label("Brag About It!", systemImage: "megaphone.fill")
+                            .foregroundColor(.accentColor)
+                    }
+                } footer: {
+                    Text("Share your progress via text, social media, or anywhere else.")
+                }
+
                 // ── Danger zone ──────────────────────────────────────────
                 Section {
                     Button(role: .destructive) {
@@ -77,6 +90,16 @@ struct ProfileView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Profile")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ShareLink(
+                        item: vm.braggingText,
+                        preview: SharePreview("My RewardME Stats", image: Image(systemName: "trophy.fill"))
+                    ) {
+                        Label("Brag", systemImage: "megaphone.fill")
+                    }
+                }
+            }
             .alert("Reset All Data?", isPresented: $showResetAlert) {
                 Button("Reset", role: .destructive) {
                     DataStore.shared.reset()

@@ -300,6 +300,31 @@ final class RewardViewModel: ObservableObject {
     var completedTasks: [TaskItem] { tasks.filter { $0.isCompleted } }
     var cancelledTasks: [TaskItem] { tasks.filter { $0.isCancelled } }
 
+    /// Text used for the "Brag About It" share sheet.
+    var braggingText: String {
+        let streak   = profile.currentStreak
+        let longest  = profile.longestStreak
+        let points   = profile.totalPoints
+        let total    = profile.totalTasksCompleted
+        let badges   = profile.earnedBadges.count
+        let hard     = profile.hardTasksCompleted
+        let epic     = profile.epicTasksCompleted
+
+        var lines: [String] = [
+            "🏆 Check out my RewardME stats!",
+            "",
+            "⭐️ \(points) points earned",
+            "✅ \(total) tasks completed",
+        ]
+        if hard > 0  { lines.append("🔥 \(hard) hard tasks crushed") }
+        if epic > 0  { lines.append("🌟 \(epic) epic tasks conquered") }
+        lines.append("📅 \(streak)-day streak (best: \(longest) days)")
+        lines.append("🏅 \(badges) badge\(badges == 1 ? "" : "s") unlocked")
+        lines.append("")
+        lines.append("Staying productive with RewardME! 💪")
+        return lines.joined(separator: "\n")
+    }
+
     var allBadges: [(definition: BadgeDefinition, earned: EarnedBadge?)] {
         BadgeID.allCases.compactMap { id in
             guard let def = BadgeDefinition.catalog[id] else { return nil }
