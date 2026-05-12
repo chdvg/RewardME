@@ -4,7 +4,7 @@ import SwiftUI
 
 private enum TaskFilter: Int, CaseIterable {
     case pending, done, cancelled
-    func label(vm: RewardViewModel) -> String {
+    @MainActor func label(vm: RewardViewModel) -> String {
         switch self {
         case .pending:   return "Pending (\(vm.pendingTasks.count))"
         case .done:      return "Done (\(vm.completedTasks.count))"
@@ -145,7 +145,7 @@ struct TaskListView: View {
     private var noTasksPlaceholder: some View {
         HStack {
             Spacer()
-            Text(showCompleted ? "No completed tasks yet." : "All done! 🎉")
+            Text(filter == .done ? "No completed tasks yet." : filter == .cancelled ? "No cancelled tasks." : "All done! 🎉")
                 .foregroundColor(.secondary)
                 .padding(.vertical, 20)
             Spacer()
