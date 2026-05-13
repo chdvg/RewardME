@@ -300,6 +300,73 @@ final class RewardViewModel: ObservableObject {
     var completedTasks: [TaskItem] { tasks.filter { $0.isCompleted } }
     var cancelledTasks: [TaskItem] { tasks.filter { $0.isCancelled } }
 
+    var overdueTasks: [TaskItem] {
+        let now = Date()
+        return tasks.filter { !$0.isCompleted && !$0.isCancelled && $0.dueDate != nil && $0.dueDate! < Calendar.current.startOfDay(for: now) }
+    }
+
+    var dueTodayTasks: [TaskItem] {
+        let cal = Calendar.current
+        let start = cal.startOfDay(for: Date())
+        let end   = cal.date(byAdding: .day, value: 1, to: start)!
+        return tasks.filter { !$0.isCompleted && !$0.isCancelled && $0.dueDate != nil && $0.dueDate! >= start && $0.dueDate! < end }
+    }
+
+    func filteredAndSorted(
+        status: TaskStatusFilter,
+        difficulty: DifficultyFilter,
+        due: DueFilter,
+        sort: SortOption,
+        ascending: Bool
+    ) -> [TaskItem] {
+        var result: [TaskItem]
+        switch status {
+        case .pending:   result = pendingTasks
+        case .done:      result = completedTasks
+        case .cancelled: result = cancelledTasks
+        }
+
+        // Difficulty filter
+        if difficulty != .all {
+            result = result.filter { $0.difficulty.rawValue == difficulty.rawValue }
+        }
+
+        // Due filter (only meaningful for pending)
+        if status == .pending {
+            let cal   = Calendar.current
+            let now   = Date()
+            let start = cal.startOfDay(for: now)
+            let end   = cal.date(byAdding: .day, value: 1, to: start)!
+            switch due {
+            case .all:      break
+            case .overdue:  result = result.filter { $0.dueDate != nil && $0.dueDate! < start }
+            case .dueToday: result = result.filter { $0.dueDate != nil && $0.dueDate! >= start && $0.dueDate! < end }
+            case .upcoming: result = result.filter { $0.dueDate != nil && $0.dueDate! >= end }
+            case .noDue:    result = result.filter { $0.dueDate == nil }
+            }
+        }
+
+        // Sort
+        result.sort {
+            let less: Bool
+            switch sort {
+            case .dateCreated:  less = $0.createdDate < $1.createdDate
+            case .dueDate:
+                switch ($0.dueDate, $1.dueDate) {
+                case (nil, nil):   less = false
+                case (nil, _):     less = false
+                case (_, nil):     less = true
+                case let (a?, b?): less = a < b
+                }
+            case .difficulty:   less = $0.difficulty.sortOrder < $1.difficulty.sortOrder
+            case .points:       less = $0.difficulty.basePoints < $1.difficulty.basePoints
+            case .title:        less = $0.title.localizedCompare($1.title) == .orderedAscending
+            }
+            return ascending ? less : !less
+        }
+        return result
+    }
+
     /// Text used for the "Brag About It" share sheet.
     var braggingText: String {
         let streak   = profile.currentStreak

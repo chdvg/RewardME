@@ -79,6 +79,30 @@ struct TaskItem: Identifiable, Codable, Equatable {
         self.dueDate = dueDate
     }
 
+    // MARK: - Migration-safe Codable
+    // Any new fields added after launch must have a default here so existing
+    // saved data (which won't have the key) still decodes correctly.
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, notes, difficulty, isCompleted, isCancelled,
+             completedDate, createdDate, pointsAwarded, recurrence, dueDate
+    }
+
+    init(from decoder: Decoder) throws {
+        let c          = try decoder.container(keyedBy: CodingKeys.self)
+        id             = try c.decode(UUID.self,           forKey: .id)
+        title          = try c.decode(String.self,         forKey: .title)
+        notes          = try c.decodeIfPresent(String.self, forKey: .notes) ?? ""
+        difficulty     = try c.decodeIfPresent(TaskDifficulty.self, forKey: .difficulty) ?? .easy
+        isCompleted    = try c.decodeIfPresent(Bool.self,  forKey: .isCompleted)    ?? false
+        isCancelled    = try c.decodeIfPresent(Bool.self,  forKey: .isCancelled)    ?? false   // ← new field default
+        completedDate  = try c.decodeIfPresent(Date.self,  forKey: .completedDate)
+        createdDate    = try c.decodeIfPresent(Date.self,  forKey: .createdDate)    ?? Date()
+        pointsAwarded  = try c.decodeIfPresent(Int.self,   forKey: .pointsAwarded)  ?? 0
+        recurrence     = try c.decodeIfPresent(RecurrenceRule.self, forKey: .recurrence) ?? .none
+        dueDate        = try c.decodeIfPresent(Date.self,  forKey: .dueDate)
+    }
+
     // MARK: - Helpers
 
     /// The calendar day (midnight) on which this task was completed, if any.

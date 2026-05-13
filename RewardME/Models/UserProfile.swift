@@ -37,6 +37,30 @@ struct UserProfile: Codable {
         earnedBadges = []
     }
 
+    // MARK: - Migration-safe Codable
+
+    enum CodingKeys: String, CodingKey {
+        case totalPoints, currentStreak, longestStreak, lastCompletionDay,
+             totalTasksCompleted, hardTasksCompleted, epicTasksCompleted,
+             dailyStats, weeklyStats, monthlyStats, yearlyStats, earnedBadges
+    }
+
+    init(from decoder: Decoder) throws {
+        let c               = try decoder.container(keyedBy: CodingKeys.self)
+        totalPoints         = try c.decodeIfPresent(Int.self,              forKey: .totalPoints)         ?? 0
+        currentStreak       = try c.decodeIfPresent(Int.self,              forKey: .currentStreak)       ?? 0
+        longestStreak       = try c.decodeIfPresent(Int.self,              forKey: .longestStreak)       ?? 0
+        lastCompletionDay   = try c.decodeIfPresent(Date.self,             forKey: .lastCompletionDay)
+        totalTasksCompleted = try c.decodeIfPresent(Int.self,              forKey: .totalTasksCompleted) ?? 0
+        hardTasksCompleted  = try c.decodeIfPresent(Int.self,              forKey: .hardTasksCompleted)  ?? 0
+        epicTasksCompleted  = try c.decodeIfPresent(Int.self,              forKey: .epicTasksCompleted)  ?? 0
+        dailyStats          = try c.decodeIfPresent([String: Int].self,    forKey: .dailyStats)          ?? [:]
+        weeklyStats         = try c.decodeIfPresent([String: Int].self,    forKey: .weeklyStats)         ?? [:]
+        monthlyStats        = try c.decodeIfPresent([String: Int].self,    forKey: .monthlyStats)        ?? [:]
+        yearlyStats         = try c.decodeIfPresent([String: Int].self,    forKey: .yearlyStats)         ?? [:]
+        earnedBadges        = try c.decodeIfPresent([EarnedBadge].self,    forKey: .earnedBadges)        ?? []
+    }
+
     // MARK: - Computed
 
     var earnedBadgeIDs: Set<BadgeID> {
