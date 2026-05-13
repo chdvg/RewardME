@@ -319,7 +319,7 @@ struct TaskItem: Identifiable, Codable, Equatable {
         if let rule = try? c.decodeIfPresent(RecurrenceRule.self, forKey: .recurrence) {
             recurrence = rule ?? .none
         } else if let legacyFreq = try? c.decodeIfPresent(RecurrenceFrequency.self, forKey: .recurrence) {
-            recurrence = RecurrenceRule(frequency: legacyFreq ?? .none)
+            recurrence = RecurrenceRule(frequency: legacyFreq)
         } else {
             recurrence = .none
         }

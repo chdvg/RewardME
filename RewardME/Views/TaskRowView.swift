@@ -41,8 +41,8 @@ struct TaskRowView: View {
                         .foregroundColor(task.difficulty.color)
                         .clipShape(Capsule())
 
-                    if task.recurrence != .none {
-                        Label(task.recurrence.rawValue, systemImage: task.recurrence.icon)
+                    if task.recurrence.frequency != .none {
+                        Label(task.recurrence.frequency.rawValue, systemImage: task.recurrence.frequency.icon)
                             .font(.caption2)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
