@@ -53,17 +53,15 @@ struct TaskListView: View {
                                         withAnimation { vm.toggleCompletion(of: task) }
                                     }
                                     .swipeActions(edge: .leading) {
-                                        if statusFilter == .pending {
-                                            Button { taskToEdit = task } label: {
-                                                Label("Edit", systemImage: "pencil")
-                                            }.tint(.blue)
-                                        }
+                                        Button { taskToEdit = task } label: {
+                                            Label("Edit", systemImage: "pencil")
+                                        }.tint(.blue)
                                         if statusFilter == .cancelled {
                                             Button {
                                                 withAnimation { vm.uncancelTask(task) }
                                             } label: {
                                                 Label("Restore", systemImage: "arrow.uturn.left")
-                                            }.tint(.blue)
+                                            }.tint(.green)
                                         }
                                     }
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
