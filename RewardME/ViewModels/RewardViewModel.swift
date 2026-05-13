@@ -54,11 +54,10 @@ final class RewardViewModel: ObservableObject {
     // MARK: - Task management
 
     func addTask(title: String, notes: String = "", difficulty: TaskDifficulty = .easy,
-                 recurrence: RecurrenceRule = .none, recurrenceWeekdays: [Int] = [],
+                 recurrence: RecurrenceRule = .none,
                  dueDate: Date? = nil) {
         let task = TaskItem(title: title, notes: notes, difficulty: difficulty,
-                            recurrence: recurrence, recurrenceWeekdays: recurrenceWeekdays,
-                            dueDate: dueDate)
+                            recurrence: recurrence, dueDate: dueDate)
         tasks.insert(task, at: 0)
         scheduleNotification(for: task)
         persist()
@@ -133,17 +132,19 @@ final class RewardViewModel: ObservableObject {
             NotificationManager.shared.cancel(taskID: tasks[idx].id)
 
             // Spawn next occurrence for recurring tasks
-            let rule = tasks[idx].recurrence
-            if let nextDue = rule.nextDueDate(from: now, weekdays: tasks[idx].recurrenceWeekdays) {
+            var rule = tasks[idx].recurrence
+            let startDate = tasks[idx].dueDate ?? tasks[idx].createdDate
+            if let nextDue = rule.nextDueDate(from: now, startDate: startDate) {
                 let completed = tasks[idx]
+                rule.occurrencesFired += 1
                 let next = TaskItem(
                     title: completed.title,
                     notes: completed.notes,
                     difficulty: completed.difficulty,
                     recurrence: rule,
-                    recurrenceWeekdays: completed.recurrenceWeekdays,
                     dueDate: nextDue
                 )
+                // Carry the time-of-day into dueDate if rule has a time set
                 tasks.append(next)
                 scheduleNotification(for: next)
             }
