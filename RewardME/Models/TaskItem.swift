@@ -3,40 +3,60 @@ import Foundation
 // MARK: - Recurrence Rule
 
 enum RecurrenceRule: String, Codable, CaseIterable, Identifiable {
-    case none   = "None"
-    case daily  = "Daily"
-    case weekly = "Weekly"
-    case yearly = "Yearly"
+    case none    = "None"
+    case daily   = "Daily"
+    case weekly  = "Weekly"
+    case monthly = "Monthly"
+    case yearly  = "Yearly"
 
     var id: String { rawValue }
 
     var icon: String {
         switch self {
-        case .none:   return "xmark.circle"
-        case .daily:  return "sun.rise.fill"
-        case .weekly: return "calendar.badge.clock"
-        case .yearly: return "calendar.badge.plus"
+        case .none:    return "xmark.circle"
+        case .daily:   return "sun.rise.fill"
+        case .weekly:  return "calendar.badge.clock"
+        case .monthly: return "calendar"
+        case .yearly:  return "calendar.badge.plus"
         }
     }
 
     var label: String {
         switch self {
-        case .none:   return "One-time"
-        case .daily:  return "Repeats every day"
-        case .weekly: return "Repeats every week"
-        case .yearly: return "Repeats every year"
+        case .none:    return "One-time"
+        case .daily:   return "Repeats every day"
+        case .weekly:  return "Repeats every week"
+        case .monthly: return "Repeats every month"
+        case .yearly:  return "Repeats every year"
         }
     }
 
-    /// Returns the next due date after `date`, or nil for non-recurring.
-    func nextDueDate(from date: Date) -> Date? {
-        let cal = Calendar.current
+    /// Returns the next due date after `date`.
+    /// Pass `weekdays` (Calendar weekday ints 1=Sun…7=Sat) to constrain weekly repeats.
+    func nextDueDate(from date: Date, weekdays: [Int] = []) -> Date? {
+        let cal   = Calendar.current
         let start = cal.startOfDay(for: date)
         switch self {
-        case .none:   return nil
-        case .daily:  return cal.date(byAdding: .day,        value: 1, to: start)
-        case .weekly: return cal.date(byAdding: .weekOfYear, value: 1, to: start)
-        case .yearly: return cal.date(byAdding: .year,       value: 1, to: start)
+        case .none:
+            return nil
+        case .daily:
+            return cal.date(byAdding: .day,        value: 1, to: start)
+        case .weekly:
+            if weekdays.isEmpty {
+                return cal.date(byAdding: .weekOfYear, value: 1, to: start)
+            }
+            // Find the nearest future day that matches one of the selected weekdays.
+            var candidate = cal.date(byAdding: .day, value: 1, to: start)!
+            for _ in 0 ..< 7 {
+                let wd = cal.component(.weekday, from: candidate)
+                if weekdays.contains(wd) { return candidate }
+                candidate = cal.date(byAdding: .day, value: 1, to: candidate)!
+            }
+            return cal.date(byAdding: .weekOfYear, value: 1, to: start)
+        case .monthly:
+            return cal.date(byAdding: .month, value: 1, to: start)
+        case .yearly:
+            return cal.date(byAdding: .year,  value: 1, to: start)
         }
     }
 }
@@ -55,6 +75,9 @@ struct TaskItem: Identifiable, Codable, Equatable {
     /// Points actually awarded when the task was completed (including streak bonus).
     var pointsAwarded: Int
     var recurrence: RecurrenceRule
+    /// Weekday numbers (1=Sun … 7=Sat) used when recurrence == .weekly.
+    /// Empty means "any day" (advance by exactly 7 days).
+    var recurrenceWeekdays: [Int]
     /// When set, the task is hidden until this date arrives.
     var dueDate: Date?
 
@@ -64,6 +87,7 @@ struct TaskItem: Identifiable, Codable, Equatable {
         notes: String = "",
         difficulty: TaskDifficulty = .easy,
         recurrence: RecurrenceRule = .none,
+        recurrenceWeekdays: [Int] = [],
         dueDate: Date? = nil
     ) {
         self.id = id
@@ -76,6 +100,7 @@ struct TaskItem: Identifiable, Codable, Equatable {
         self.createdDate = Date()
         self.pointsAwarded = 0
         self.recurrence = recurrence
+        self.recurrenceWeekdays = recurrenceWeekdays
         self.dueDate = dueDate
     }
 
@@ -85,22 +110,24 @@ struct TaskItem: Identifiable, Codable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case id, title, notes, difficulty, isCompleted, isCancelled,
-             completedDate, createdDate, pointsAwarded, recurrence, dueDate
+             completedDate, createdDate, pointsAwarded, recurrence,
+             recurrenceWeekdays, dueDate
     }
 
     init(from decoder: Decoder) throws {
-        let c          = try decoder.container(keyedBy: CodingKeys.self)
-        id             = try c.decode(UUID.self,           forKey: .id)
-        title          = try c.decode(String.self,         forKey: .title)
-        notes          = try c.decodeIfPresent(String.self, forKey: .notes) ?? ""
-        difficulty     = try c.decodeIfPresent(TaskDifficulty.self, forKey: .difficulty) ?? .easy
-        isCompleted    = try c.decodeIfPresent(Bool.self,  forKey: .isCompleted)    ?? false
-        isCancelled    = try c.decodeIfPresent(Bool.self,  forKey: .isCancelled)    ?? false   // ← new field default
-        completedDate  = try c.decodeIfPresent(Date.self,  forKey: .completedDate)
-        createdDate    = try c.decodeIfPresent(Date.self,  forKey: .createdDate)    ?? Date()
-        pointsAwarded  = try c.decodeIfPresent(Int.self,   forKey: .pointsAwarded)  ?? 0
-        recurrence     = try c.decodeIfPresent(RecurrenceRule.self, forKey: .recurrence) ?? .none
-        dueDate        = try c.decodeIfPresent(Date.self,  forKey: .dueDate)
+        let c                = try decoder.container(keyedBy: CodingKeys.self)
+        id                   = try c.decode(UUID.self,           forKey: .id)
+        title                = try c.decode(String.self,         forKey: .title)
+        notes                = try c.decodeIfPresent(String.self, forKey: .notes)             ?? ""
+        difficulty           = try c.decodeIfPresent(TaskDifficulty.self, forKey: .difficulty) ?? .easy
+        isCompleted          = try c.decodeIfPresent(Bool.self,  forKey: .isCompleted)         ?? false
+        isCancelled          = try c.decodeIfPresent(Bool.self,  forKey: .isCancelled)         ?? false
+        completedDate        = try c.decodeIfPresent(Date.self,  forKey: .completedDate)
+        createdDate          = try c.decodeIfPresent(Date.self,  forKey: .createdDate)         ?? Date()
+        pointsAwarded        = try c.decodeIfPresent(Int.self,   forKey: .pointsAwarded)       ?? 0
+        recurrence           = try c.decodeIfPresent(RecurrenceRule.self, forKey: .recurrence) ?? .none
+        recurrenceWeekdays   = try c.decodeIfPresent([Int].self, forKey: .recurrenceWeekdays)  ?? []
+        dueDate              = try c.decodeIfPresent(Date.self,  forKey: .dueDate)
     }
 
     // MARK: - Helpers

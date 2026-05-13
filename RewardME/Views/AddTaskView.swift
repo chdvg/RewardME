@@ -11,6 +11,7 @@ struct AddTaskView: View {
     @State private var notes: String = ""
     @State private var difficulty: TaskDifficulty = .easy
     @State private var recurrence: RecurrenceRule = .none
+    @State private var recurrenceWeekdays: Set<Int> = []
     @State private var hasDueDate: Bool = false
     @State private var dueDate: Date = Calendar.current.startOfDay(for: .now)
 
@@ -99,6 +100,7 @@ struct AddTaskView: View {
                     ForEach(RecurrenceRule.allCases) { rule in
                         Button {
                             recurrence = rule
+                            if rule != .weekly { recurrenceWeekdays = [] }
                         } label: {
                             HStack {
                                 Image(systemName: rule.icon)
@@ -119,6 +121,10 @@ struct AddTaskView: View {
                             }
                         }
                     }
+
+                    if recurrence == .weekly {
+                        weekdayPicker
+                    }
                 }
             }
             .navigationTitle(isEditing ? "Edit Task" : "New Task")
@@ -138,10 +144,11 @@ struct AddTaskView: View {
         }
         .onAppear {
             if let task = taskToEdit {
-                title      = task.title
-                notes      = task.notes
-                difficulty = task.difficulty
-                recurrence = task.recurrence
+                title              = task.title
+                notes              = task.notes
+                difficulty         = task.difficulty
+                recurrence         = task.recurrence
+                recurrenceWeekdays = Set(task.recurrenceWeekdays)
                 if let due = task.dueDate {
                     hasDueDate = true
                     dueDate    = due
@@ -153,19 +160,60 @@ struct AddTaskView: View {
     private func save() {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        let due = hasDueDate ? Calendar.current.startOfDay(for: dueDate) : nil
+        let due      = hasDueDate ? Calendar.current.startOfDay(for: dueDate) : nil
+        let weekdays = recurrence == .weekly ? Array(recurrenceWeekdays).sorted() : []
 
         if var task = taskToEdit {
-            task.title      = trimmed
-            task.notes      = notes
-            task.difficulty = difficulty
-            task.recurrence = recurrence
-            task.dueDate    = due
+            task.title              = trimmed
+            task.notes              = notes
+            task.difficulty         = difficulty
+            task.recurrence         = recurrence
+            task.recurrenceWeekdays = weekdays
+            task.dueDate            = due
             vm.updateTask(task)
         } else {
-            vm.addTask(title: trimmed, notes: notes, difficulty: difficulty, recurrence: recurrence, dueDate: due)
+            vm.addTask(title: trimmed, notes: notes, difficulty: difficulty,
+                       recurrence: recurrence, recurrenceWeekdays: weekdays, dueDate: due)
         }
         dismiss()
+    }
+
+    // MARK: - Weekday Picker
+
+    private static let weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    // Calendar weekday ints: 1=Sun, 2=Mon … 7=Sat
+
+    private var weekdayPicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Repeat on")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            HStack(spacing: 6) {
+                ForEach(1...7, id: \.self) { wd in
+                    let label = Self.weekdayLabels[wd - 1]
+                    let selected = recurrenceWeekdays.contains(wd)
+                    Button {
+                        if selected { recurrenceWeekdays.remove(wd) }
+                        else        { recurrenceWeekdays.insert(wd) }
+                    } label: {
+                        Text(label)
+                            .font(.caption2).fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background(selected ? Color.accentColor : Color.secondary.opacity(0.15))
+                            .foregroundColor(selected ? .white : .primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            if recurrenceWeekdays.isEmpty {
+                Text("No days selected — repeats every 7 days from completion")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.top, 6)
     }
 }
 

@@ -39,6 +39,8 @@ final class RewardViewModel: ObservableObject {
     @Published var tasks: [TaskItem] = []
     @Published var profile: UserProfile = UserProfile()
     @Published var recentlyEarnedBadges: [BadgeDefinition] = []
+    /// Set when a task is just completed; consumed by ContentView to show the celebration.
+    @Published var celebrationTask: TaskItem? = nil
 
     private let store = DataStore.shared
 
@@ -51,21 +53,28 @@ final class RewardViewModel: ObservableObject {
 
     // MARK: - Task management
 
-    func addTask(title: String, notes: String = "", difficulty: TaskDifficulty = .easy, recurrence: RecurrenceRule = .none, dueDate: Date? = nil) {
-        let task = TaskItem(title: title, notes: notes, difficulty: difficulty, recurrence: recurrence, dueDate: dueDate)
+    func addTask(title: String, notes: String = "", difficulty: TaskDifficulty = .easy,
+                 recurrence: RecurrenceRule = .none, recurrenceWeekdays: [Int] = [],
+                 dueDate: Date? = nil) {
+        let task = TaskItem(title: title, notes: notes, difficulty: difficulty,
+                            recurrence: recurrence, recurrenceWeekdays: recurrenceWeekdays,
+                            dueDate: dueDate)
         tasks.insert(task, at: 0)
+        scheduleNotification(for: task)
         persist()
     }
 
     func deleteTask(_ task: TaskItem) {
         // If the task was completed, we do NOT revert points/stats —
         // that keeps the history accurate.
+        NotificationManager.shared.cancel(taskID: task.id)
         tasks.removeAll { $0.id == task.id }
         persist()
     }
 
     func deleteTask(at offsets: IndexSet, in filtered: [TaskItem]) {
         let ids = offsets.map { filtered[$0].id }
+        ids.forEach { NotificationManager.shared.cancel(taskID: $0) }
         tasks.removeAll { ids.contains($0.id) }
         persist()
     }
@@ -118,19 +127,25 @@ final class RewardViewModel: ObservableObject {
 
             updateStreak(completionDay: day)
             checkBadges()
+            celebrationTask = tasks[idx]
+
+            // Cancel the due-date notification since it's done
+            NotificationManager.shared.cancel(taskID: tasks[idx].id)
 
             // Spawn next occurrence for recurring tasks
             let rule = tasks[idx].recurrence
-            if let nextDue = rule.nextDueDate(from: now) {
+            if let nextDue = rule.nextDueDate(from: now, weekdays: tasks[idx].recurrenceWeekdays) {
                 let completed = tasks[idx]
                 let next = TaskItem(
                     title: completed.title,
                     notes: completed.notes,
                     difficulty: completed.difficulty,
                     recurrence: rule,
+                    recurrenceWeekdays: completed.recurrenceWeekdays,
                     dueDate: nextDue
                 )
                 tasks.append(next)
+                scheduleNotification(for: next)
             }
         }
 
@@ -140,18 +155,25 @@ final class RewardViewModel: ObservableObject {
     func updateTask(_ updated: TaskItem) {
         guard let idx = tasks.firstIndex(where: { $0.id == updated.id }) else { return }
         tasks[idx] = updated
+        // Reschedule notification with potentially changed due date
+        NotificationManager.shared.cancel(taskID: updated.id)
+        if !updated.isCompleted && !updated.isCancelled {
+            scheduleNotification(for: updated)
+        }
         persist()
     }
 
     func cancelTask(_ task: TaskItem) {
         guard let idx = tasks.firstIndex(where: { $0.id == task.id }) else { return }
         tasks[idx].isCancelled = true
+        NotificationManager.shared.cancel(taskID: task.id)
         persist()
     }
 
     func uncancelTask(_ task: TaskItem) {
         guard let idx = tasks.firstIndex(where: { $0.id == task.id }) else { return }
         tasks[idx].isCancelled = false
+        scheduleNotification(for: tasks[idx])
         persist()
     }
 
@@ -494,5 +516,13 @@ final class RewardViewModel: ObservableObject {
         guard let val = dict[key] else { return }
         if val <= 1 { dict.removeValue(forKey: key) }
         else        { dict[key] = val - 1 }
+    }
+
+    // MARK: - Notification helper
+
+    private func scheduleNotification(for task: TaskItem) {
+        let settings = AppSettings.shared
+        guard settings.notificationsEnabled else { return }
+        NotificationManager.shared.schedule(task: task, hour: settings.notificationHour, minute: settings.notificationMinute)
     }
 }
