@@ -11,6 +11,8 @@ struct AddTaskView: View {
     @State private var notes: String = ""
     @State private var difficulty: TaskDifficulty = .easy
     @State private var recurrence: RecurrenceRule = .none
+    @State private var hasDueDate: Bool = false
+    @State private var dueDate: Date = Calendar.current.startOfDay(for: .now)
 
     private var isEditing: Bool { taskToEdit != nil }
 
@@ -80,6 +82,19 @@ struct AddTaskView: View {
                     }
                 }
 
+                Section("Due Date") {
+                    Toggle("Set a due date", isOn: $hasDueDate)
+                    if hasDueDate {
+                        DatePicker(
+                            "Due",
+                            selection: $dueDate,
+                            in: Calendar.current.startOfDay(for: .now)...,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.graphical)
+                    }
+                }
+
                 Section("Recurrence") {
                     ForEach(RecurrenceRule.allCases) { rule in
                         Button {
@@ -127,6 +142,10 @@ struct AddTaskView: View {
                 notes      = task.notes
                 difficulty = task.difficulty
                 recurrence = task.recurrence
+                if let due = task.dueDate {
+                    hasDueDate = true
+                    dueDate    = due
+                }
             }
         }
     }
@@ -134,15 +153,17 @@ struct AddTaskView: View {
     private func save() {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
+        let due = hasDueDate ? Calendar.current.startOfDay(for: dueDate) : nil
 
         if var task = taskToEdit {
             task.title      = trimmed
             task.notes      = notes
             task.difficulty = difficulty
             task.recurrence = recurrence
+            task.dueDate    = due
             vm.updateTask(task)
         } else {
-            vm.addTask(title: trimmed, notes: notes, difficulty: difficulty, recurrence: recurrence)
+            vm.addTask(title: trimmed, notes: notes, difficulty: difficulty, recurrence: recurrence, dueDate: due)
         }
         dismiss()
     }
