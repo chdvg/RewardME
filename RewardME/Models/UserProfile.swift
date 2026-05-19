@@ -21,6 +21,8 @@ struct UserProfile: Codable {
     var yearlyStats: [String: Int]
 
     var earnedBadges: [EarnedBadge]
+    /// Total points spent on rewards.
+    var spentPoints: Int
 
     init() {
         totalPoints = 0
@@ -35,6 +37,7 @@ struct UserProfile: Codable {
         monthlyStats = [:]
         yearlyStats = [:]
         earnedBadges = []
+        spentPoints  = 0
     }
 
     // MARK: - Migration-safe Codable
@@ -42,7 +45,8 @@ struct UserProfile: Codable {
     enum CodingKeys: String, CodingKey {
         case totalPoints, currentStreak, longestStreak, lastCompletionDay,
              totalTasksCompleted, hardTasksCompleted, epicTasksCompleted,
-             dailyStats, weeklyStats, monthlyStats, yearlyStats, earnedBadges
+             dailyStats, weeklyStats, monthlyStats, yearlyStats, earnedBadges,
+             spentPoints
     }
 
     init(from decoder: Decoder) throws {
@@ -59,9 +63,13 @@ struct UserProfile: Codable {
         monthlyStats        = try c.decodeIfPresent([String: Int].self,    forKey: .monthlyStats)        ?? [:]
         yearlyStats         = try c.decodeIfPresent([String: Int].self,    forKey: .yearlyStats)         ?? [:]
         earnedBadges        = try c.decodeIfPresent([EarnedBadge].self,    forKey: .earnedBadges)        ?? []
+        spentPoints         = try c.decodeIfPresent(Int.self,              forKey: .spentPoints)         ?? 0
     }
 
     // MARK: - Computed
+
+    /// Points available to spend on rewards.
+    var availablePoints: Int { max(0, totalPoints - spentPoints) }
 
     var earnedBadgeIDs: Set<BadgeID> {
         Set(earnedBadges.map(\.id))

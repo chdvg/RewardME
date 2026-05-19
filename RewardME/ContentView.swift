@@ -18,6 +18,11 @@ struct ContentView: View {
                     }
                     .badge(vm.recentlyEarnedBadges.count)
 
+                RewardsView()
+                    .tabItem {
+                        Label("Rewards", systemImage: "gift.fill")
+                    }
+
                 StatsView()
                     .tabItem {
                         Label("Stats", systemImage: "chart.bar.fill")

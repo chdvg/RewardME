@@ -26,6 +26,11 @@
 		BB11CC22DD33EE44FF5500BB /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11CC22DD33EE44FF5500AA /* NotificationManager.swift */; };
 		CC11DD22EE33FF440055AA22 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC11DD22EE33FF440055AA11 /* SettingsView.swift */; };
 		DD11EE22FF33004455AABB22 /* CelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD11EE22FF33004455AABB11 /* CelebrationView.swift */; };
+		EE22FF3300445566778899B1 /* RewardDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF3300445566778899A1 /* RewardDefinition.swift */; };
+		EE22FF3300445566778899B2 /* RedemptionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF3300445566778899A2 /* RedemptionRecord.swift */; };
+		EE22FF3300445566778899B3 /* RewardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF3300445566778899A3 /* RewardsView.swift */; };
+		EE22FF3300445566778899B4 /* AddRewardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF3300445566778899A4 /* AddRewardView.swift */; };
+		EE22FF3300445566778899B5 /* RedemptionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF3300445566778899A5 /* RedemptionHistoryView.swift */; };
 		F2B4FD0D26B4465E9CE06B86 /* RewardMETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944E4DDFF4C34C50AF8A7A9D /* RewardMETests.swift */; };
 /* End PBXBuildFile section */
 
@@ -52,6 +57,11 @@
 		BB11CC22DD33EE44FF5500AA /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		CC11DD22EE33FF440055AA11 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		DD11EE22FF33004455AABB11 /* CelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationView.swift; sourceTree = "<group>"; };
+		EE22FF3300445566778899A1 /* RewardDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardDefinition.swift; sourceTree = "<group>"; };
+		EE22FF3300445566778899A2 /* RedemptionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedemptionRecord.swift; sourceTree = "<group>"; };
+		EE22FF3300445566778899A3 /* RewardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsView.swift; sourceTree = "<group>"; };
+		EE22FF3300445566778899A4 /* AddRewardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRewardView.swift; sourceTree = "<group>"; };
+		EE22FF3300445566778899A5 /* RedemptionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedemptionHistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +123,8 @@
 				9C202F508F9642D5A18EEC9C /* Badge.swift */,
 				A62259A60F924B47A78CA79A /* UserProfile.swift */,
 				AA11BB22CC33DD44EE55FF66 /* AppSettings.swift */,
+				EE22FF3300445566778899A1 /* RewardDefinition.swift */,
+				EE22FF3300445566778899A2 /* RedemptionRecord.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -136,6 +148,9 @@
 				BDC496CEAF7B42AABD54B62A /* ProfileView.swift */,
 				CC11DD22EE33FF440055AA11 /* SettingsView.swift */,
 				DD11EE22FF33004455AABB11 /* CelebrationView.swift */,
+				EE22FF3300445566778899A3 /* RewardsView.swift */,
+				EE22FF3300445566778899A4 /* AddRewardView.swift */,
+				EE22FF3300445566778899A5 /* RedemptionHistoryView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -264,6 +279,11 @@
 				BB11CC22DD33EE44FF5500BB /* NotificationManager.swift in Sources */,
 				CC11DD22EE33FF440055AA22 /* SettingsView.swift in Sources */,
 				DD11EE22FF33004455AABB22 /* CelebrationView.swift in Sources */,
+				EE22FF3300445566778899B1 /* RewardDefinition.swift in Sources */,
+				EE22FF3300445566778899B2 /* RedemptionRecord.swift in Sources */,
+				EE22FF3300445566778899B3 /* RewardsView.swift in Sources */,
+				EE22FF3300445566778899B4 /* AddRewardView.swift in Sources */,
+				EE22FF3300445566778899B5 /* RedemptionHistoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -46,6 +46,30 @@ struct SettingsView: View {
                     Text("Controls the animation when you complete a task. Epic tasks always get an extra boost.")
                 }
 
+                // ── Redemption history ────────────────────────────────
+                Section {
+                    ForEach(HistoryRetention.allCases) { window in
+                        Button {
+                            settings.historyRetention = window
+                            vm.pruneRedemptions()
+                        } label: {
+                            HStack {
+                                Text(window.rawValue)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                if settings.historyRetention == window {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.accentColor)
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Redemption History")
+                } footer: {
+                    Text("How long to keep your reward redemption history. \(settings.historyRetention.storageNote).")
+                }
+
                 // ── Notifications ─────────────────────────────────────
                 Section {
                     Toggle("Enable Reminders", isOn: $settings.notificationsEnabled)

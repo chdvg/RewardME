@@ -41,14 +41,19 @@ final class RewardViewModel: ObservableObject {
     @Published var recentlyEarnedBadges: [BadgeDefinition] = []
     /// Set when a task is just completed; consumed by ContentView to show the celebration.
     @Published var celebrationTask: TaskItem? = nil
+    @Published var rewards: [RewardDefinition] = []
+    @Published var redemptions: [RedemptionRecord] = []
 
     private let store = DataStore.shared
 
     // MARK: - Init
 
     init() {
-        tasks   = store.loadTasks()
-        profile = store.loadProfile()
+        tasks       = store.loadTasks()
+        profile     = store.loadProfile()
+        rewards     = store.loadRewards()
+        redemptions = store.loadRedemptions()
+        pruneRedemptions()
     }
 
     // MARK: - Task management
@@ -525,5 +530,51 @@ final class RewardViewModel: ObservableObject {
         let settings = AppSettings.shared
         guard settings.notificationsEnabled else { return }
         NotificationManager.shared.schedule(task: task, hour: settings.notificationHour, minute: settings.notificationMinute)
+    }
+
+    // MARK: - Reward management
+
+    func addReward(title: String, notes: String = "", pointCost: Int, emoji: String = "🎁") {
+        let reward = RewardDefinition(title: title, notes: notes, pointCost: pointCost, emoji: emoji)
+        rewards.append(reward)
+        persistRewards()
+    }
+
+    func updateReward(_ updated: RewardDefinition) {
+        guard let idx = rewards.firstIndex(where: { $0.id == updated.id }) else { return }
+        rewards[idx] = updated
+        persistRewards()
+    }
+
+    func deleteReward(_ reward: RewardDefinition) {
+        rewards.removeAll { $0.id == reward.id }
+        persistRewards()
+    }
+
+    /// Spends points to redeem a reward. Returns false if available points are insufficient.
+    @discardableResult
+    func redeemReward(_ reward: RewardDefinition) -> Bool {
+        guard profile.availablePoints >= reward.pointCost else { return false }
+        profile.spentPoints += reward.pointCost
+        redemptions.insert(RedemptionRecord(reward: reward), at: 0)
+        persist()
+        persistRedemptions()
+        return true
+    }
+
+    /// Removes redemption records older than the current retention window.
+    func pruneRedemptions() {
+        guard let cutoff = AppSettings.shared.historyRetention.cutoffDate else { return }
+        let before = redemptions.count
+        redemptions.removeAll { $0.redeemedAt < cutoff }
+        if redemptions.count != before { persistRedemptions() }
+    }
+
+    private func persistRewards() {
+        store.saveRewards(rewards)
+    }
+
+    private func persistRedemptions() {
+        store.saveRedemptions(redemptions)
     }
 }

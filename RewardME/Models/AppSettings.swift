@@ -1,5 +1,40 @@
 import Foundation
 
+// MARK: - History Retention
+
+enum HistoryRetention: String, CaseIterable, Identifiable {
+    case days30  = "30 Days"
+    case days90  = "90 Days"
+    case months6 = "6 Months"
+    case year1   = "1 Year"
+    case forever = "Forever"
+
+    var id: String { rawValue }
+
+    /// The earliest date to keep records for, or nil to keep everything.
+    var cutoffDate: Date? {
+        let cal = Calendar.current
+        let now = Date()
+        switch self {
+        case .days30:  return cal.date(byAdding: .day,   value: -30, to: now)
+        case .days90:  return cal.date(byAdding: .day,   value: -90, to: now)
+        case .months6: return cal.date(byAdding: .month, value: -6,  to: now)
+        case .year1:   return cal.date(byAdding: .year,  value: -1,  to: now)
+        case .forever: return nil
+        }
+    }
+
+    var storageNote: String {
+        switch self {
+        case .days30:  return "~30 entries kept (~6 KB)"
+        case .days90:  return "3 months of history (~18 KB)"
+        case .months6: return "Half-year history (~36 KB)"
+        case .year1:   return "Full year history (~73 KB)"
+        case .forever: return "All-time history — grows over years"
+        }
+    }
+}
+
 // MARK: - Celebration Level
 
 enum CelebrationLevel: String, CaseIterable, Identifiable {
@@ -54,11 +89,17 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(notificationMinute, forKey: "notificationMinute") }
     }
 
+    @Published var historyRetention: HistoryRetention {
+        didSet { UserDefaults.standard.set(historyRetention.rawValue, forKey: "historyRetention") }
+    }
+
     init() {
         let levelRaw       = UserDefaults.standard.string(forKey: "celebrationLevel") ?? CelebrationLevel.medium.rawValue
         celebrationLevel   = CelebrationLevel(rawValue: levelRaw) ?? .medium
         notificationsEnabled = UserDefaults.standard.object(forKey: "notificationsEnabled") as? Bool ?? true
         notificationHour   = UserDefaults.standard.object(forKey: "notificationHour")   as? Int ?? 9
         notificationMinute = UserDefaults.standard.object(forKey: "notificationMinute") as? Int ?? 0
+        let retentionRaw   = UserDefaults.standard.string(forKey: "historyRetention") ?? HistoryRetention.days90.rawValue
+        historyRetention   = HistoryRetention(rawValue: retentionRaw) ?? .days90
     }
 }

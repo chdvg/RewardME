@@ -4,9 +4,11 @@ import Foundation
 final class DataStore {
     static let shared = DataStore()
 
-    private let tasksKey   = "rewardme_tasks"
-    private let profileKey = "rewardme_profile"
-    private let defaults   = UserDefaults.standard
+    private let tasksKey        = "rewardme_tasks"
+    private let profileKey      = "rewardme_profile"
+    private let rewardsKey      = "rewardme_rewards"
+    private let redemptionsKey  = "rewardme_redemptions"
+    private let defaults        = UserDefaults.standard
 
     private init() {}
 
@@ -42,10 +44,44 @@ final class DataStore {
         return profile
     }
 
+    // MARK: - Rewards
+
+    func saveRewards(_ rewards: [RewardDefinition]) {
+        if let data = try? JSONEncoder().encode(rewards) {
+            defaults.set(data, forKey: rewardsKey)
+        }
+    }
+
+    func loadRewards() -> [RewardDefinition] {
+        guard
+            let data    = defaults.data(forKey: rewardsKey),
+            let rewards = try? JSONDecoder().decode([RewardDefinition].self, from: data)
+        else { return [] }
+        return rewards
+    }
+
+    // MARK: - Redemptions
+
+    func saveRedemptions(_ redemptions: [RedemptionRecord]) {
+        if let data = try? JSONEncoder().encode(redemptions) {
+            defaults.set(data, forKey: redemptionsKey)
+        }
+    }
+
+    func loadRedemptions() -> [RedemptionRecord] {
+        guard
+            let data        = defaults.data(forKey: redemptionsKey),
+            let redemptions = try? JSONDecoder().decode([RedemptionRecord].self, from: data)
+        else { return [] }
+        return redemptions
+    }
+
     // MARK: - Reset (for testing / debug)
 
     func reset() {
         defaults.removeObject(forKey: tasksKey)
         defaults.removeObject(forKey: profileKey)
+        defaults.removeObject(forKey: rewardsKey)
+        defaults.removeObject(forKey: redemptionsKey)
     }
 }
