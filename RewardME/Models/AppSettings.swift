@@ -93,6 +93,20 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(historyRetention.rawValue, forKey: "historyRetention") }
     }
 
+    @Published var userName: String {
+        didSet { UserDefaults.standard.set(userName, forKey: "userName") }
+    }
+
+    @Published var avatarImageData: Data? {
+        didSet {
+            if let data = avatarImageData {
+                UserDefaults.standard.set(data, forKey: "avatarImageData")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "avatarImageData")
+            }
+        }
+    }
+
     init() {
         let levelRaw       = UserDefaults.standard.string(forKey: "celebrationLevel") ?? CelebrationLevel.medium.rawValue
         celebrationLevel   = CelebrationLevel(rawValue: levelRaw) ?? .medium
@@ -101,5 +115,7 @@ final class AppSettings: ObservableObject {
         notificationMinute = UserDefaults.standard.object(forKey: "notificationMinute") as? Int ?? 0
         let retentionRaw   = UserDefaults.standard.string(forKey: "historyRetention") ?? HistoryRetention.days90.rawValue
         historyRetention   = HistoryRetention(rawValue: retentionRaw) ?? .days90
+        userName         = UserDefaults.standard.string(forKey: "userName") ?? ""
+        avatarImageData  = UserDefaults.standard.data(forKey: "avatarImageData")
     }
 }

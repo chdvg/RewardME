@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RewardsView: View {
     @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var settings: AppSettings
     @State private var showAddReward    = false
     @State private var editingReward: RewardDefinition? = nil
     @State private var pendingRedeem: RewardDefinition? = nil
@@ -79,7 +80,11 @@ struct RewardsView: View {
                 AddRewardView(editing: reward)
             }
             .confirmationDialog(
-                pendingRedeem.map { "Redeem \"\($0.title)\"?" } ?? "",
+                pendingRedeem.map { r in
+                    settings.userName.isEmpty
+                        ? "Redeem \"\(r.title)\"?"
+                        : "Treat yourself, \(settings.userName)!"
+                } ?? "",
                 isPresented: $showRedeemDialog,
                 titleVisibility: .visible
             ) {
@@ -199,4 +204,5 @@ struct RewardsView: View {
 #Preview {
     RewardsView()
         .environmentObject(RewardViewModel())
+        .environmentObject(AppSettings.shared)
 }

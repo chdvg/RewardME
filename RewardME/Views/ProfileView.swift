@@ -2,7 +2,9 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject private var vm: RewardViewModel
-    @State private var showResetAlert = false
+    @EnvironmentObject private var settings: AppSettings
+    @State private var showResetAlert   = false
+    @State private var showEditProfile  = false
 
     var body: some View {
         NavigationStack {
@@ -92,6 +94,13 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showEditProfile = true
+                    } label: {
+                        Label("Edit Profile", systemImage: "person.crop.circle.badge.pencil")
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
                     ShareLink(
                         item: vm.braggingText,
                         preview: SharePreview("My RewardME Stats", image: Image(systemName: "trophy.fill"))
@@ -99,6 +108,9 @@ struct ProfileView: View {
                         Label("Brag", systemImage: "megaphone.fill")
                     }
                 }
+            }
+            .sheet(isPresented: $showEditProfile) {
+                EditProfileView()
             }
             .alert("Reset All Data?", isPresented: $showResetAlert) {
                 Button("Reset", role: .destructive) {
@@ -116,15 +128,27 @@ struct ProfileView: View {
     // MARK: - Hero section
 
     private var heroSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
+            // Avatar with optional crown
+            let streak = vm.profile.currentStreak
+            let crown: String? = streak >= 7 ? "👑" : streak >= 3 ? "⭐️" : nil
+            AvatarView(imageData: settings.avatarImageData, size: 80, crown: crown)
+
+            // Greeting
+            if !settings.userName.isEmpty {
+                Text("Great job, \(settings.userName)!")
+                    .font(.title3.bold())
+                    .foregroundColor(.white)
+            }
+
             // Points circle
             ZStack {
                 Circle()
                     .fill(Color.white.opacity(0.2))
-                    .frame(width: 100, height: 100)
+                    .frame(width: 88, height: 88)
                 VStack(spacing: 2) {
                     Text("\(vm.profile.totalPoints)")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     Text("Points")
                         .font(.caption)
@@ -132,7 +156,7 @@ struct ProfileView: View {
                 }
             }
 
-            // Badges earned row
+            // Stats row
             HStack(spacing: 24) {
                 VStack {
                     Text("\(vm.profile.earnedBadges.count)")
@@ -175,4 +199,5 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
         .environmentObject(RewardViewModel())
+        .environmentObject(AppSettings.shared)
 }

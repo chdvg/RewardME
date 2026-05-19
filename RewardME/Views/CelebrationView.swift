@@ -49,6 +49,8 @@ struct CelebrationView: View {
     let difficulty: TaskDifficulty
     let onFinished: () -> Void
 
+    @EnvironmentObject private var settings: AppSettings
+
     @State private var startDate:     Date   = .now
     @State private var particles:     [Particle] = []
     @State private var flashColor:    Color  = .yellow
@@ -145,6 +147,20 @@ struct CelebrationView: View {
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
                     .animation(.easeOut(duration: 0.45), value: flashOpacity)
+            }
+
+            // Personalized greeting
+            if !settings.userName.isEmpty {
+                VStack {
+                    Text("🎉 Great job, \(settings.userName)!")
+                        .font(.title2.bold())
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 72)
+                    Spacer()
+                }
+                .allowsHitTesting(false)
             }
         }
     }
