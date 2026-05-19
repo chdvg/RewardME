@@ -317,7 +317,7 @@ struct TaskItem: Identifiable, Codable, Equatable {
         // Migration: old data stored recurrence as a plain string enum value ("Weekly").
         // Try decoding as the new struct first; fall back to wrapping the old string value.
         if let rule = try? c.decodeIfPresent(RecurrenceRule.self, forKey: .recurrence) {
-            recurrence = rule ?? .none
+            recurrence = rule
         } else if let legacyFreq = try? c.decodeIfPresent(RecurrenceFrequency.self, forKey: .recurrence) {
             recurrence = RecurrenceRule(frequency: legacyFreq)
         } else {
