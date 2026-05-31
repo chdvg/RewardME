@@ -4,8 +4,6 @@ struct ContentView: View {
     @EnvironmentObject private var viewModel: RewardViewModel
     @EnvironmentObject private var settings:  AppSettings
 
-    @State private var showSettings = false
-
     var body: some View {
         ZStack {
             if viewModel.isLoading {
@@ -39,9 +37,6 @@ struct ContentView: View {
                         .tabItem {
                             Label("Profile", systemImage: "person.fill")
                         }
-                }
-                .sheet(isPresented: $showSettings) {
-                    SettingsView()
                 }
             }
 

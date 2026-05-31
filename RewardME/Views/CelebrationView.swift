@@ -15,7 +15,7 @@ private struct Particle {
     let rot0, rotSpeed: Double
     let lifespan: Double    // seconds this particle is alive after startTime
 
-    static let g: Double = 380  // gravity (px/s²)
+    static let g: Double = 380  // gravity (px/sï¿½)
 
     // Alpha timing constants
     private static let fadeInDuration    = 0.06   // particle fades in over this many seconds
@@ -266,7 +266,7 @@ struct CelebrationView: View {
 
         var result: [Particle] = []
 
-        // — Rocket trail (dots along the ascent path)
+        // ï¿½ Rocket trail (dots along the ascent path)
         for j in 0 ..< 14 {
             let tFrac = Double(j) / 14.0
             let tAt   = tFrac * tPeak
@@ -285,7 +285,7 @@ struct CelebrationView: View {
             ))
         }
 
-        // — Burst at peak
+        // ï¿½ Burst at peak
         let burstN: Int
         switch level {
         case .off, .mild: burstN = 0
@@ -313,7 +313,7 @@ struct CelebrationView: View {
             ))
         }
 
-        // — Sparkle streaks radiating out
+        // ï¿½ Sparkle streaks radiating out
         let streakN = level == .absolutelyUnhinged ? 18 : 10
         for _ in 0 ..< streakN {
             let speed = CGFloat.random(in: 180 ... 460)

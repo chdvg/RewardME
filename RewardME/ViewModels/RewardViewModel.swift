@@ -56,7 +56,6 @@ final class RewardViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func loadAllData() {
         tasks       = store.loadTasks()
         profile     = store.loadProfile()

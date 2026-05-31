@@ -99,7 +99,12 @@ struct RewardsView: View {
                 }
             } message: {
                 if let reward = pendingRedeem {
-                    Text("You have \(viewModel.profile.availablePoints) pts available. This will leave you with \(viewModel.profile.availablePoints - reward.pointCost) pts.")
+                    let remaining = viewModel.profile.availablePoints - reward.pointCost
+                    if remaining >= 0 {
+                        Text("You have \(viewModel.profile.availablePoints) pts. This will leave you with \(remaining) pts.")
+                    } else {
+                        Text("You have \(viewModel.profile.availablePoints) pts — not enough for this reward.")
+                    }
                 }
             }
             .alert("Not Enough Points", isPresented: $redeemFailed) {

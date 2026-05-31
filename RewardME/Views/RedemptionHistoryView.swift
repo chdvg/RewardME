@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RedemptionHistoryView: View {
     @EnvironmentObject private var viewModel: RewardViewModel
+    @EnvironmentObject private var settings: AppSettings
 
     private static let monthFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -68,7 +69,7 @@ struct RedemptionHistoryView: View {
                 }
 
                 Section {
-                    Text("History window: \(AppSettings.shared.historyRetention.rawValue). Change in Settings.")
+                    Text("History window: \(settings.historyRetention.rawValue). Change in Settings.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -100,5 +101,6 @@ struct RedemptionHistoryView: View {
     NavigationStack {
         RedemptionHistoryView()
             .environmentObject(RewardViewModel())
+            .environmentObject(AppSettings.shared)
     }
 }
