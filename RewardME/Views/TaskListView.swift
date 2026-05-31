@@ -209,9 +209,8 @@ struct TaskListView: View {
     private var badgeToastOverlay: some View {
         if let badge = viewModel.recentlyEarnedBadges.first {
             BadgeToastView(badge: badge) {
-                var remaining = viewModel.recentlyEarnedBadges
-                remaining.removeFirst()
-                viewModel.recentlyEarnedBadges = remaining
+                guard !viewModel.recentlyEarnedBadges.isEmpty else { return }
+                viewModel.recentlyEarnedBadges.removeFirst()
             }
             .transition(.move(edge: .top).combined(with: .opacity))
             .animation(.spring(), value: viewModel.recentlyEarnedBadges.count)
@@ -306,6 +305,9 @@ struct BadgeToastView: View {
     let badge: BadgeDefinition
     let onDismiss: () -> Void
 
+    // Guard against double-dismiss: user tap + 4 s auto-timer both call onDismiss.
+    @State private var dismissed = false
+
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: badge.icon).font(.title2).foregroundColor(.yellow)
@@ -314,7 +316,7 @@ struct BadgeToastView: View {
                 Text(badge.name).font(.subheadline).bold()
             }
             Spacer()
-            Button(action: onDismiss) {
+            Button(action: fireDismiss) {
                 Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
             }
         }
@@ -322,8 +324,14 @@ struct BadgeToastView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
         .padding(.horizontal)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { onDismiss() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { fireDismiss() }
         }
+    }
+
+    private func fireDismiss() {
+        guard !dismissed else { return }
+        dismissed = true
+        onDismiss()
     }
 }
 

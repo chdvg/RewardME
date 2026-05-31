@@ -460,7 +460,7 @@ final class RewardViewModel: ObservableObject {
         let f = DateFormatter(); f.dateFormat = "MMM"; return f
     }()
 
-    private static let relativeDateFormatter = RelativeDateTimeFormatter()
+    static let relativeDateFormatter = RelativeDateTimeFormatter()
 
     /// Last 7 days, oldest first.
     var last7DayStats: [PeriodStat] {
