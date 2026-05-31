@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BadgesView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
 
     private let columns = [
         GridItem(.adaptive(minimum: 150), spacing: 14)
@@ -16,7 +16,7 @@ struct BadgesView: View {
 
                     // Badge grid
                     LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(vm.allBadges, id: \.definition.id) { item in
+                        ForEach(viewModel.allBadges, id: \.definition.id) { item in
                             BadgeCard(definition: item.definition, earned: item.earned)
                         }
                     }
@@ -31,21 +31,21 @@ struct BadgesView: View {
     private var summaryHeader: some View {
         HStack(spacing: 0) {
             summaryTile(
-                value: "\(vm.profile.earnedBadges.count)",
+                value: "\(viewModel.profile.earnedBadges.count)",
                 label: "Earned",
                 icon: "rosette",
                 color: .yellow
             )
             Divider().frame(height: 60)
             summaryTile(
-                value: "\(BadgeID.allCases.count - vm.profile.earnedBadges.count)",
+                value: "\(BadgeID.allCases.count - viewModel.profile.earnedBadges.count)",
                 label: "Locked",
                 icon: "lock.fill",
                 color: .gray
             )
             Divider().frame(height: 60)
             summaryTile(
-                value: "\(vm.profile.badgeBonusPoints)",
+                value: "\(viewModel.profile.badgeBonusPoints)",
                 label: "Bonus pts",
                 icon: "star.fill",
                 color: .orange

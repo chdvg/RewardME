@@ -43,17 +43,27 @@ final class RewardViewModel: ObservableObject {
     @Published var celebrationTask: TaskItem? = nil
     @Published var rewards: [RewardDefinition] = []
     @Published var redemptions: [RedemptionRecord] = []
+    /// True while initial data is loading from UserDefaults on launch.
+    @Published var isLoading = true
 
     private let store = DataStore.shared
 
     // MARK: - Init
 
     init() {
+        Task {
+            await loadAllData()
+        }
+    }
+
+    @MainActor
+    private func loadAllData() {
         tasks       = store.loadTasks()
         profile     = store.loadProfile()
         rewards     = store.loadRewards()
         redemptions = store.loadRedemptions()
         pruneRedemptions()
+        isLoading   = false
     }
 
     // MARK: - Task management
@@ -334,9 +344,9 @@ final class RewardViewModel: ObservableObject {
     }
 
     var dueTodayTasks: [TaskItem] {
-        let cal = Calendar.current
+        let cal   = Calendar.current
         let start = cal.startOfDay(for: Date())
-        let end   = cal.date(byAdding: .day, value: 1, to: start)!
+        guard let end = cal.date(byAdding: .day, value: 1, to: start) else { return [] }
         return tasks.filter { !$0.isCompleted && !$0.isCancelled && $0.dueDate != nil && $0.dueDate! >= start && $0.dueDate! < end }
     }
 
@@ -364,7 +374,7 @@ final class RewardViewModel: ObservableObject {
             let cal   = Calendar.current
             let now   = Date()
             let start = cal.startOfDay(for: now)
-            let end   = cal.date(byAdding: .day, value: 1, to: start)!
+            guard let end = cal.date(byAdding: .day, value: 1, to: start) else { break }
             switch due {
             case .all:      break
             case .overdue:  result = result.filter { $0.dueDate != nil && $0.dueDate! < start }
@@ -437,26 +447,40 @@ final class RewardViewModel: ObservableObject {
         let points: Int
     }
 
+    // MARK: - Cached date formatters (DateFormatter is expensive to create)
+
+    private static let shortDayFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "EEE"; return f
+    }()
+
+    private static let weekStartFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMM d"; return f
+    }()
+
+    private static let shortMonthFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMM"; return f
+    }()
+
+    private static let relativeDateFormatter = RelativeDateTimeFormatter()
+
     /// Last 7 days, oldest first.
     var last7DayStats: [PeriodStat] {
         let cal = Calendar.current
-        return (0..<7).reversed().map { offset in
-            let day = cal.date(byAdding: .day, value: -offset, to: cal.startOfDay(for: Date()))!
+        return (0..<7).reversed().compactMap { offset -> PeriodStat? in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: cal.startOfDay(for: Date())) else { return nil }
             let count = profile.tasksCompleted(on: day)
             let pts   = tasks
                 .filter { $0.completionDay == day }
                 .reduce(0) { $0 + $1.pointsAwarded }
-            let fmt = DateFormatter()
-            fmt.dateFormat = "EEE"
-            return PeriodStat(label: fmt.string(from: day), count: count, points: pts)
+            return PeriodStat(label: Self.shortDayFormatter.string(from: day), count: count, points: pts)
         }
     }
 
     /// Last 4 ISO weeks, oldest first.
     var last4WeekStats: [PeriodStat] {
         let cal = Calendar.current
-        return (0..<4).reversed().map { offset in
-            let day   = cal.date(byAdding: .weekOfYear, value: -offset, to: Date())!
+        return (0..<4).reversed().compactMap { offset -> PeriodStat? in
+            guard let day = cal.date(byAdding: .weekOfYear, value: -offset, to: Date()) else { return nil }
             let count = profile.tasksCompleted(inWeekOf: day)
             let key   = UserProfile.weeklyKey(for: day)
             let pts   = tasks
@@ -465,17 +489,15 @@ final class RewardViewModel: ObservableObject {
                     return UserProfile.weeklyKey(for: c) == key
                 }
                 .reduce(0) { $0 + $1.pointsAwarded }
-            let fmt = DateFormatter()
-            fmt.dateFormat = "MMM d"
-            return PeriodStat(label: fmt.string(from: day), count: count, points: pts)
+            return PeriodStat(label: Self.weekStartFormatter.string(from: day), count: count, points: pts)
         }
     }
 
     /// Last 6 calendar months, oldest first.
     var last6MonthStats: [PeriodStat] {
         let cal = Calendar.current
-        return (0..<6).reversed().map { offset in
-            let day   = cal.date(byAdding: .month, value: -offset, to: Date())!
+        return (0..<6).reversed().compactMap { offset -> PeriodStat? in
+            guard let day = cal.date(byAdding: .month, value: -offset, to: Date()) else { return nil }
             let count = profile.tasksCompleted(inMonthOf: day)
             let key   = UserProfile.monthlyKey(for: day)
             let pts   = tasks
@@ -484,15 +506,13 @@ final class RewardViewModel: ObservableObject {
                     return UserProfile.monthlyKey(for: c) == key
                 }
                 .reduce(0) { $0 + $1.pointsAwarded }
-            let fmt = DateFormatter()
-            fmt.dateFormat = "MMM"
-            return PeriodStat(label: fmt.string(from: day), count: count, points: pts)
+            return PeriodStat(label: Self.shortMonthFormatter.string(from: day), count: count, points: pts)
         }
     }
 
     /// Current year's monthly breakdown.
     var currentYearMonthlyStats: [PeriodStat] {
-        let cal = Calendar.current
+        let cal  = Calendar.current
         let year = cal.component(.year, from: Date())
         return (1...12).map { month in
             var comps  = DateComponents()
@@ -506,9 +526,7 @@ final class RewardViewModel: ObservableObject {
                     return UserProfile.monthlyKey(for: c) == key
                 }
                 .reduce(0) { $0 + $1.pointsAwarded }
-            let fmt = DateFormatter()
-            fmt.dateFormat = "MMM"
-            return PeriodStat(label: fmt.string(from: day), count: count, points: pts)
+            return PeriodStat(label: Self.shortMonthFormatter.string(from: day), count: count, points: pts)
         }
     }
 

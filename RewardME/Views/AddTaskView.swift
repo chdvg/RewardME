@@ -1,7 +1,7 @@
-﻿import SwiftUI
+import SwiftUI
 
 struct AddTaskView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
     @Environment(\.dismiss) private var dismiss
 
     var taskToEdit: TaskItem?
@@ -23,7 +23,7 @@ struct AddTaskView: View {
 
     // Weekly
     @State private var weeklyInterval: Int = 1
-    @State private var weeklyDays: Set<Int> = []          // 1=Sun…7=Sat
+    @State private var weeklyDays: Set<Int> = []          // 1=Sun�7=Sat
 
     // Monthly
     @State private var monthlyInterval: Int = 1
@@ -117,13 +117,13 @@ struct AddTaskView: View {
             HStack {
                 Label("You'll earn", systemImage: "star.fill").foregroundColor(.secondary)
                 Spacer()
-                Text("+\(vm.previewPoints(difficulty: difficulty)) pts").font(.headline).foregroundColor(.yellow)
+                Text("+\(viewModel.previewPoints(difficulty: difficulty)) pts").font(.headline).foregroundColor(.yellow)
             }
-            if vm.profile.currentStreak > 0 {
+            if viewModel.profile.currentStreak > 0 {
                 HStack {
                     Label("Streak bonus active", systemImage: "bolt.fill").font(.caption).foregroundColor(.orange)
                     Spacer()
-                    Text("🔥 \(vm.profile.currentStreak) days").font(.caption).foregroundColor(.orange)
+                    Text("?? \(viewModel.profile.currentStreak) days").font(.caption).foregroundColor(.orange)
                 }
             }
         }
@@ -243,7 +243,7 @@ struct AddTaskView: View {
                 }
             }
             if weeklyDays.isEmpty {
-                Text("No days selected — repeats every \(weeklyInterval == 1 ? "week" : "\(weeklyInterval) weeks") from completion")
+                Text("No days selected � repeats every \(weeklyInterval == 1 ? "week" : "\(weeklyInterval) weeks") from completion")
                     .font(.caption2).foregroundColor(.secondary)
             }
         }
@@ -370,9 +370,9 @@ struct AddTaskView: View {
             task.difficulty = difficulty
             task.recurrence = rule
             task.dueDate    = due
-            vm.updateTask(task)
+            viewModel.updateTask(task)
         } else {
-            vm.addTask(title: trimmed, notes: notes, difficulty: difficulty,
+            viewModel.addTask(title: trimmed, notes: notes, difficulty: difficulty,
                        recurrence: rule, dueDate: due)
         }
         dismiss()

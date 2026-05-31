@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
     @EnvironmentObject private var settings: AppSettings
     @State private var showResetAlert   = false
     @State private var showEditProfile  = false
+    @State private var showSettings     = false
 
     var body: some View {
         NavigationStack {
@@ -24,26 +25,26 @@ struct ProfileView: View {
 
                 // ── Streak details ───────────────────────────────────────
                 Section("Streak") {
-                    statRow(label: "Current Streak",  value: "\(vm.profile.currentStreak) days",  icon: "flame.fill",   color: .orange)
-                    statRow(label: "Longest Streak",  value: "\(vm.profile.longestStreak) days",  icon: "crown.fill",   color: .yellow)
-                    if let last = vm.profile.lastCompletionDay {
-                        statRow(label: "Last Active", value: RelativeDateTimeFormatter().localizedString(for: last, relativeTo: Date()), icon: "calendar", color: .blue)
+                    statRow(label: "Current Streak",  value: "\(viewModel.profile.currentStreak) days",  icon: "flame.fill",   color: .orange)
+                    statRow(label: "Longest Streak",  value: "\(viewModel.profile.longestStreak) days",  icon: "crown.fill",   color: .yellow)
+                    if let last = viewModel.profile.lastCompletionDay {
+                        statRow(label: "Last Active", value: RewardViewModel.relativeDateFormatter.localizedString(for: last, relativeTo: Date()), icon: "calendar", color: .blue)
                     }
                 }
 
                 // ── Task stats ───────────────────────────────────────────
                 Section("Tasks") {
-                    statRow(label: "Total Completed",  value: "\(vm.profile.totalTasksCompleted)",  icon: "checkmark.circle.fill", color: .green)
-                    statRow(label: "Hard Tasks",       value: "\(vm.profile.hardTasksCompleted)",   icon: "flame.fill",            color: .orange)
-                    statRow(label: "Epic Tasks",       value: "\(vm.profile.epicTasksCompleted)",   icon: "star.fill",             color: .purple)
-                    statRow(label: "Pending",          value: "\(vm.pendingTasks.count)",           icon: "circle",                color: .secondary)
+                    statRow(label: "Total Completed",  value: "\(viewModel.profile.totalTasksCompleted)",  icon: "checkmark.circle.fill", color: .green)
+                    statRow(label: "Hard Tasks",       value: "\(viewModel.profile.hardTasksCompleted)",   icon: "flame.fill",            color: .orange)
+                    statRow(label: "Epic Tasks",       value: "\(viewModel.profile.epicTasksCompleted)",   icon: "star.fill",             color: .purple)
+                    statRow(label: "Pending",          value: "\(viewModel.pendingTasks.count)",           icon: "circle",                color: .secondary)
                 }
 
                 // ── Points breakdown ─────────────────────────────────────
                 Section("Points") {
-                    statRow(label: "Task Points",   value: "\(vm.profile.totalPoints - vm.profile.badgeBonusPoints)", icon: "star.fill",   color: .yellow)
-                    statRow(label: "Badge Bonuses", value: "+\(vm.profile.badgeBonusPoints)",                         icon: "rosette",     color: .orange)
-                    statRow(label: "Total Points",  value: "\(vm.profile.totalPoints)",                               icon: "dollarsign.circle.fill", color: .green)
+                    statRow(label: "Task Points",   value: "\(viewModel.profile.totalPoints - viewModel.profile.badgeBonusPoints)", icon: "star.fill",   color: .yellow)
+                    statRow(label: "Badge Bonuses", value: "+\(viewModel.profile.badgeBonusPoints)",                         icon: "rosette",     color: .orange)
+                    statRow(label: "Total Points",  value: "\(viewModel.profile.totalPoints)",                               icon: "dollarsign.circle.fill", color: .green)
                 }
 
                 // ── Points per difficulty guide ──────────────────────────
@@ -71,7 +72,7 @@ struct ProfileView: View {
                 // ── Brag About It ────────────────────────────────────────
                 Section {
                     ShareLink(
-                        item: vm.braggingText,
+                        item: viewModel.braggingText,
                         preview: SharePreview("My RewardME Stats", image: Image(systemName: "trophy.fill"))
                     ) {
                         Label("Brag About It!", systemImage: "megaphone.fill")
@@ -94,29 +95,42 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showEditProfile = true
-                    } label: {
-                        Label("Edit Profile", systemImage: "person.crop.circle.badge.pencil")
+                    HStack(spacing: 4) {
+                        Button {
+                            showEditProfile = true
+                        } label: {
+                            Label("Edit Profile", systemImage: "person.crop.circle.badge.pencil")
+                                .accessibilityLabel("Edit profile")
+                        }
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                                .accessibilityLabel("Settings")
+                        }
                     }
                 }
                 ToolbarItem(placement: .navigationBarLeading) {
                     ShareLink(
-                        item: vm.braggingText,
+                        item: viewModel.braggingText,
                         preview: SharePreview("My RewardME Stats", image: Image(systemName: "trophy.fill"))
                     ) {
                         Label("Brag", systemImage: "megaphone.fill")
+                            .accessibilityLabel("Share your stats")
                     }
                 }
             }
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView()
             }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
             .alert("Reset All Data?", isPresented: $showResetAlert) {
                 Button("Reset", role: .destructive) {
                     DataStore.shared.reset()
-                    vm.tasks   = []
-                    vm.profile = UserProfile()
+                    viewModel.tasks   = []
+                    viewModel.profile = UserProfile()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
@@ -130,7 +144,7 @@ struct ProfileView: View {
     private var heroSection: some View {
         VStack(spacing: 14) {
             // Avatar with optional crown
-            let streak = vm.profile.currentStreak
+            let streak = viewModel.profile.currentStreak
             let crown: String? = streak >= 7 ? "👑" : streak >= 3 ? "⭐️" : nil
             AvatarView(imageData: settings.avatarImageData, size: 80, crown: crown)
 
@@ -147,7 +161,7 @@ struct ProfileView: View {
                     .fill(Color.white.opacity(0.2))
                     .frame(width: 88, height: 88)
                 VStack(spacing: 2) {
-                    Text("\(vm.profile.totalPoints)")
+                    Text("\(viewModel.profile.totalPoints)")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     Text("Points")
@@ -159,19 +173,19 @@ struct ProfileView: View {
             // Stats row
             HStack(spacing: 24) {
                 VStack {
-                    Text("\(vm.profile.earnedBadges.count)")
+                    Text("\(viewModel.profile.earnedBadges.count)")
                         .font(.title3).bold().foregroundColor(.white)
                     Text("Badges")
                         .font(.caption).foregroundColor(.white.opacity(0.8))
                 }
                 VStack {
-                    Text("\(vm.profile.currentStreak)🔥")
+                    Text("\(viewModel.profile.currentStreak)🔥")
                         .font(.title3).bold().foregroundColor(.white)
                     Text("Streak")
                         .font(.caption).foregroundColor(.white.opacity(0.8))
                 }
                 VStack {
-                    Text("\(vm.profile.totalTasksCompleted)")
+                    Text("\(viewModel.profile.totalTasksCompleted)")
                         .font(.title3).bold().foregroundColor(.white)
                     Text("Done")
                         .font(.caption).foregroundColor(.white.opacity(0.8))

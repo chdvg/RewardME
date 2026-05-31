@@ -16,6 +16,8 @@ struct TaskRowView: View {
                     .animation(.spring(response: 0.3), value: task.isCompleted)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(task.isCompleted ? "Mark as incomplete" : "Mark as complete")
+            .accessibilityHint("Double-tap to toggle completion status")
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(task.title)

@@ -1,5 +1,15 @@
 import Foundation
 
+// MARK: - Cached date formatters
+
+private let mediumDateFormatter: DateFormatter = {
+    let f = DateFormatter(); f.dateStyle = .medium; return f
+}()
+
+private let shortTimeFormatter: DateFormatter = {
+    let f = DateFormatter(); f.dateFormat = "h:mm a"; return f
+}()
+
 // MARK: - Recurrence Frequency
 
 enum RecurrenceFrequency: String, Codable, CaseIterable, Identifiable {
@@ -67,9 +77,7 @@ enum RecurrenceEnd: Codable, Equatable {
         case .never:                    return "Never"
         case .afterOccurrences(let n):  return "After \(n) time\(n == 1 ? "" : "s")"
         case .onDate(let d):
-            let fmt = DateFormatter()
-            fmt.dateStyle = .medium
-            return "Until \(fmt.string(from: d))"
+            return "Until \(mediumDateFormatter.string(from: d))"
         }
     }
 }
@@ -156,11 +164,9 @@ struct RecurrenceRule: Codable, Equatable {
 
         // Time
         if hasTime {
-            let fmt = DateFormatter()
-            fmt.dateFormat = "h:mm a"
             var comps = DateComponents(); comps.hour = hour; comps.minute = minute
             if let d = Calendar.current.date(from: comps) {
-                parts.append("at \(fmt.string(from: d))")
+                parts.append("at \(shortTimeFormatter.string(from: d))")
             }
         }
 
@@ -203,11 +209,12 @@ struct RecurrenceRule: Codable, Equatable {
                 candidate = cal.date(byAdding: .weekOfYear, value: interval, to: start)
             } else {
                 // Find next matching weekday within the interval-week window
-                var next = cal.date(byAdding: .day, value: 1, to: start)!
+                guard var next = cal.date(byAdding: .day, value: 1, to: start) else { return nil }
                 for _ in 0 ..< (interval * 7) {
                     let wd = cal.component(.weekday, from: next)
                     if weekdays.contains(wd) { candidate = next; break }
-                    next = cal.date(byAdding: .day, value: 1, to: next)!
+                    guard let nextDay = cal.date(byAdding: .day, value: 1, to: next) else { return nil }
+                    next = nextDay
                 }
                 if candidate == nil {
                     candidate = cal.date(byAdding: .weekOfYear, value: interval, to: start)
@@ -215,7 +222,7 @@ struct RecurrenceRule: Codable, Equatable {
             }
 
         case .monthly:
-            let base = cal.date(byAdding: .month, value: interval, to: start)!
+            guard let base = cal.date(byAdding: .month, value: interval, to: start) else { return nil }
             if monthlyStyle == .onDayOfMonth {
                 // Same day-of-month as the original start date
                 let originalDay = cal.component(.day, from: startDate)

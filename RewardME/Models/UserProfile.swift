@@ -100,30 +100,37 @@ struct UserProfile: Codable {
         yearlyStats[Self.yearlyKey(for: date)] ?? 0
     }
 
-    // MARK: - Key builders
+    // MARK: - Key builders (cached formatters — DateFormatter is expensive to create)
+
+    private static let dailyKeyFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f
+    }()
+    private static let weeklyKeyFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-'W'ww"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+    private static let monthlyKeyFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM"; return f
+    }()
+    private static let yearlyKeyFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "yyyy"; return f
+    }()
 
     static func dailyKey(for date: Date) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        return fmt.string(from: date)
+        dailyKeyFormatter.string(from: date)
     }
 
     static func weeklyKey(for date: Date) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-'W'ww"
-        fmt.locale = Locale(identifier: "en_US_POSIX")
-        return fmt.string(from: date)
+        weeklyKeyFormatter.string(from: date)
     }
 
     static func monthlyKey(for date: Date) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM"
-        return fmt.string(from: date)
+        monthlyKeyFormatter.string(from: date)
     }
 
     static func yearlyKey(for date: Date) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy"
-        return fmt.string(from: date)
+        yearlyKeyFormatter.string(from: date)
     }
 }

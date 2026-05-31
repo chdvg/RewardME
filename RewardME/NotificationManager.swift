@@ -5,8 +5,29 @@ final class NotificationManager {
     static let shared = NotificationManager()
     private init() {}
 
-    func requestPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
+    /// Requests notification authorization and posts a notification if the user denies.
+    func requestPermission(completion: ((Bool) -> Void)? = nil) {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            DispatchQueue.main.async {
+                if let error {
+                    print("❌ Notification permission error: \(error.localizedDescription)")
+                }
+                if !granted {
+                    print("⚠️ Notification permission denied by user.")
+                    NotificationCenter.default.post(name: .notificationPermissionDenied, object: nil)
+                }
+                completion?(granted)
+            }
+        }
+    }
+
+    /// Checks current authorization status without requesting.
+    func checkAuthorizationStatus(completion: @escaping (UNAuthorizationStatus) -> Void) {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                completion(settings.authorizationStatus)
+            }
+        }
     }
 
     func schedule(task: TaskItem, hour: Int, minute: Int) {
@@ -51,4 +72,10 @@ final class NotificationManager {
             schedule(task: task, hour: hour, minute: minute)
         }
     }
+}
+
+// MARK: - Notification name
+
+extension Notification.Name {
+    static let notificationPermissionDenied = Notification.Name("NotificationPermissionDenied")
 }

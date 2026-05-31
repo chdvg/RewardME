@@ -9,6 +9,7 @@ struct EditProfileView: View {
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var pendingAvatarData: Data? = nil   // new photo chosen this session
     @State private var clearAvatar      = false          // user tapped "Remove Photo"
+    @State private var photoErrorMessage: String? = nil  // non-nil if photo load failed
 
     // The data to preview — pending if chosen, else existing
     private var previewData: Data? {
@@ -48,13 +49,33 @@ struct EditProfileView: View {
                     }
                     .onChange(of: selectedPhoto) { _, item in
                         Task {
-                            if let data = try? await item?.loadTransferable(type: Data.self),
-                               let ui   = UIImage(data: data),
-                               let compressed = Self.compress(ui) {
-                                clearAvatar      = false
+                            photoErrorMessage = nil
+                            guard let item else { return }
+                            do {
+                                guard let data = try await item.loadTransferable(type: Data.self) else {
+                                    photoErrorMessage = "Could not load image data."
+                                    return
+                                }
+                                guard let ui = UIImage(data: data) else {
+                                    photoErrorMessage = "Image format not supported. Try a JPEG or PNG."
+                                    return
+                                }
+                                guard let compressed = Self.compress(ui) else {
+                                    photoErrorMessage = "Failed to process image. Please try another photo."
+                                    return
+                                }
+                                clearAvatar       = false
                                 pendingAvatarData = compressed
+                            } catch {
+                                photoErrorMessage = "Error loading photo: \(error.localizedDescription)"
                             }
                         }
+                    }
+
+                    if let msg = photoErrorMessage {
+                        Label(msg, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.red)
                     }
 
                     if previewData != nil {

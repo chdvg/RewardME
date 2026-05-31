@@ -69,9 +69,41 @@ enum CelebrationLevel: String, CaseIterable, Identifiable {
 
 // MARK: - App Settings
 
+@MainActor
 final class AppSettings: ObservableObject {
 
     static let shared = AppSettings()
+
+    // MARK: - Avatar file storage (Documents folder — not UserDefaults)
+
+    private static let avatarFilename = "avatar.jpg"
+    private static var avatarURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(avatarFilename)
+    }
+
+    private static func saveAvatarToDisk(_ data: Data) {
+        do {
+            try data.write(to: avatarURL, options: .atomic)
+        } catch {
+            print("❌ Failed to save avatar: \(error.localizedDescription)")
+        }
+    }
+
+    private static func loadAvatarFromDisk() -> Data? {
+        // Migrate legacy blob stored in UserDefaults on first run after update
+        if let legacyData = UserDefaults.standard.data(forKey: "avatarImageData") {
+            saveAvatarToDisk(legacyData)
+            UserDefaults.standard.removeObject(forKey: "avatarImageData")
+        }
+        return try? Data(contentsOf: avatarURL)
+    }
+
+    private static func deleteAvatarFromDisk() {
+        try? FileManager.default.removeItem(at: avatarURL)
+    }
+
+    // MARK: - Published properties
 
     @Published var celebrationLevel: CelebrationLevel {
         didSet { UserDefaults.standard.set(celebrationLevel.rawValue, forKey: "celebrationLevel") }
@@ -97,25 +129,26 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(userName, forKey: "userName") }
     }
 
+    /// Avatar image data — persisted to Documents/avatar.jpg, not UserDefaults.
     @Published var avatarImageData: Data? {
         didSet {
             if let data = avatarImageData {
-                UserDefaults.standard.set(data, forKey: "avatarImageData")
+                Self.saveAvatarToDisk(data)
             } else {
-                UserDefaults.standard.removeObject(forKey: "avatarImageData")
+                Self.deleteAvatarFromDisk()
             }
         }
     }
 
     init() {
-        let levelRaw       = UserDefaults.standard.string(forKey: "celebrationLevel") ?? CelebrationLevel.medium.rawValue
-        celebrationLevel   = CelebrationLevel(rawValue: levelRaw) ?? .medium
+        let levelRaw         = UserDefaults.standard.string(forKey: "celebrationLevel") ?? CelebrationLevel.medium.rawValue
+        celebrationLevel     = CelebrationLevel(rawValue: levelRaw) ?? .medium
         notificationsEnabled = UserDefaults.standard.object(forKey: "notificationsEnabled") as? Bool ?? true
-        notificationHour   = UserDefaults.standard.object(forKey: "notificationHour")   as? Int ?? 9
-        notificationMinute = UserDefaults.standard.object(forKey: "notificationMinute") as? Int ?? 0
-        let retentionRaw   = UserDefaults.standard.string(forKey: "historyRetention") ?? HistoryRetention.days90.rawValue
-        historyRetention   = HistoryRetention(rawValue: retentionRaw) ?? .days90
-        userName         = UserDefaults.standard.string(forKey: "userName") ?? ""
-        avatarImageData  = UserDefaults.standard.data(forKey: "avatarImageData")
+        notificationHour     = UserDefaults.standard.object(forKey: "notificationHour")   as? Int ?? 9
+        notificationMinute   = UserDefaults.standard.object(forKey: "notificationMinute") as? Int ?? 0
+        let retentionRaw     = UserDefaults.standard.string(forKey: "historyRetention") ?? HistoryRetention.days90.rawValue
+        historyRetention     = HistoryRetention(rawValue: retentionRaw) ?? .days90
+        userName             = UserDefaults.standard.string(forKey: "userName") ?? ""
+        avatarImageData      = Self.loadAvatarFromDisk()
     }
 }

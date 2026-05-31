@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject private var vm:       RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
     @EnvironmentObject private var settings: AppSettings
+
+    @State private var notificationPermissionDenied = false
 
     // Mirror the hour/minute as a single Date for the DatePicker.
     @State private var notificationTime: Date = {
@@ -51,7 +53,7 @@ struct SettingsView: View {
                     ForEach(HistoryRetention.allCases) { window in
                         Button {
                             settings.historyRetention = window
-                            vm.pruneRedemptions()
+                            viewModel.pruneRedemptions()
                         } label: {
                             HStack {
                                 Text(window.rawValue)
@@ -75,16 +77,29 @@ struct SettingsView: View {
                     Toggle("Enable Reminders", isOn: $settings.notificationsEnabled)
                         .onChange(of: settings.notificationsEnabled) { _, enabled in
                             if enabled {
-                                NotificationManager.shared.requestPermission()
-                                NotificationManager.shared.rescheduleAll(
-                                    tasks:  vm.tasks,
-                                    hour:   settings.notificationHour,
-                                    minute: settings.notificationMinute
-                                )
+                                NotificationManager.shared.requestPermission { granted in
+                                    notificationPermissionDenied = !granted
+                                    if granted {
+                                        NotificationManager.shared.rescheduleAll(
+                                            tasks:  viewModel.tasks,
+                                            hour:   settings.notificationHour,
+                                            minute: settings.notificationMinute
+                                        )
+                                    } else {
+                                        // Revert toggle — permission denied
+                                        settings.notificationsEnabled = false
+                                    }
+                                }
                             } else {
                                 NotificationManager.shared.disableAll()
                             }
                         }
+
+                    if notificationPermissionDenied {
+                        Label("Notifications are blocked. Go to Settings > RewardME to enable them.", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
 
                     if settings.notificationsEnabled {
                         DatePicker(
@@ -97,7 +112,7 @@ struct SettingsView: View {
                             settings.notificationHour   = comps.hour   ?? 9
                             settings.notificationMinute = comps.minute ?? 0
                             NotificationManager.shared.rescheduleAll(
-                                tasks:  vm.tasks,
+                                tasks:  viewModel.tasks,
                                 hour:   settings.notificationHour,
                                 minute: settings.notificationMinute
                             )
@@ -116,6 +131,14 @@ struct SettingsView: View {
                 comps.hour   = settings.notificationHour
                 comps.minute = settings.notificationMinute
                 if let t = Calendar.current.date(from: comps) { notificationTime = t }
+
+                // Check current permission status so we can show warning if denied
+                NotificationManager.shared.checkAuthorizationStatus { status in
+                    notificationPermissionDenied = (status == .denied)
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .notificationPermissionDenied)) { _ in
+                notificationPermissionDenied = true
             }
         }
     }

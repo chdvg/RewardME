@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AddRewardView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
     @Environment(\.dismiss) private var dismiss
 
     var rewardToEdit: RewardDefinition?
@@ -81,6 +81,12 @@ struct AddRewardView: View {
                         TextField("Paste any emoji", text: $emoji)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 80)
+                            .onChange(of: emoji) { _, newValue in
+                                // Keep only the first Character (handles multi-scalar emoji)
+                                if newValue.count > 1 {
+                                    emoji = String(newValue.prefix(1))
+                                }
+                            }
                     }
                 }
 
@@ -145,7 +151,7 @@ struct AddRewardView: View {
     }
 
     private var affordabilityHint: String {
-        let avail = vm.profile.availablePoints
+        let avail = viewModel.profile.availablePoints
         if pointCost <= avail {
             return "You can redeem this right now with your \(avail) available pts."
         } else {
@@ -154,7 +160,7 @@ struct AddRewardView: View {
     }
 
     private var affordabilityColor: Color {
-        pointCost <= vm.profile.availablePoints ? .green : .secondary
+        pointCost <= viewModel.profile.availablePoints ? .green : .secondary
     }
 
     // MARK: - Guide content
@@ -224,9 +230,9 @@ struct AddRewardView: View {
             updated.notes     = trimmedNotes
             updated.pointCost = pointCost
             updated.emoji     = finalEmoji
-            vm.updateReward(updated)
+            viewModel.updateReward(updated)
         } else {
-            vm.addReward(title: trimmedTitle, notes: trimmedNotes, pointCost: pointCost, emoji: finalEmoji)
+            viewModel.addReward(title: trimmedTitle, notes: trimmedNotes, pointCost: pointCost, emoji: finalEmoji)
         }
         dismiss()
     }

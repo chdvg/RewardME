@@ -1,7 +1,7 @@
-﻿import SwiftUI
+import SwiftUI
 
 struct TaskListView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
 
     @State private var showAddTask     = false
     @State private var taskToEdit: TaskItem?
@@ -13,7 +13,7 @@ struct TaskListView: View {
     @State private var showFilterSheet : Bool             = false
 
     private var displayedTasks: [TaskItem] {
-        vm.filteredAndSorted(
+        viewModel.filteredAndSorted(
             status: statusFilter,
             difficulty: diffFilter,
             due: dueFilter,
@@ -29,7 +29,7 @@ struct TaskListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                if vm.tasks.isEmpty {
+                if viewModel.tasks.isEmpty {
                     emptyState
                 } else {
                     VStack(spacing: 0) {
@@ -50,7 +50,7 @@ struct TaskListView: View {
                             List {
                                 ForEach(displayedTasks) { task in
                                     TaskRowView(task: task) {
-                                        withAnimation { vm.toggleCompletion(of: task) }
+                                        withAnimation { viewModel.toggleCompletion(of: task) }
                                     }
                                     .swipeActions(edge: .leading) {
                                         Button { taskToEdit = task } label: {
@@ -58,7 +58,7 @@ struct TaskListView: View {
                                         }.tint(.blue)
                                         if statusFilter == .cancelled {
                                             Button {
-                                                withAnimation { vm.uncancelTask(task) }
+                                                withAnimation { viewModel.uncancelTask(task) }
                                             } label: {
                                                 Label("Restore", systemImage: "arrow.uturn.left")
                                             }.tint(.green)
@@ -66,13 +66,13 @@ struct TaskListView: View {
                                     }
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
-                                            withAnimation { vm.deleteTask(task) }
+                                            withAnimation { viewModel.deleteTask(task) }
                                         } label: {
                                             Label("Delete", systemImage: "trash")
                                         }
                                         if statusFilter == .pending {
                                             Button {
-                                                withAnimation { vm.cancelTask(task) }
+                                                withAnimation { viewModel.cancelTask(task) }
                                             } label: {
                                                 Label("Cancel", systemImage: "xmark.circle")
                                             }.tint(.orange)
@@ -122,9 +122,9 @@ struct TaskListView: View {
 
     private func statusLabel(_ s: TaskStatusFilter) -> String {
         switch s {
-        case .pending:   return "Pending (\(vm.pendingTasks.count))"
-        case .done:      return "Done (\(vm.completedTasks.count))"
-        case .cancelled: return "Cancelled (\(vm.cancelledTasks.count))"
+        case .pending:   return "Pending (\(viewModel.pendingTasks.count))"
+        case .done:      return "Done (\(viewModel.completedTasks.count))"
+        case .cancelled: return "Cancelled (\(viewModel.cancelledTasks.count))"
         }
     }
 
@@ -201,20 +201,20 @@ struct TaskListView: View {
     private var streakBadge: some View {
         HStack(spacing: 4) {
             Image(systemName: "flame.fill").foregroundColor(.orange)
-            Text("\(vm.profile.currentStreak)").font(.subheadline).bold()
+            Text("\(viewModel.profile.currentStreak)").font(.subheadline).bold()
         }
     }
 
     @ViewBuilder
     private var badgeToastOverlay: some View {
-        if let badge = vm.recentlyEarnedBadges.first {
+        if let badge = viewModel.recentlyEarnedBadges.first {
             BadgeToastView(badge: badge) {
-                var remaining = vm.recentlyEarnedBadges
+                var remaining = viewModel.recentlyEarnedBadges
                 remaining.removeFirst()
-                vm.recentlyEarnedBadges = remaining
+                viewModel.recentlyEarnedBadges = remaining
             }
             .transition(.move(edge: .top).combined(with: .opacity))
-            .animation(.spring(), value: vm.recentlyEarnedBadges.count)
+            .animation(.spring(), value: viewModel.recentlyEarnedBadges.count)
             .padding(.top, 8)
         }
     }
@@ -310,7 +310,7 @@ struct BadgeToastView: View {
         HStack(spacing: 12) {
             Image(systemName: badge.icon).font(.title2).foregroundColor(.yellow)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Badge Unlocked! 🏅").font(.caption).bold().foregroundColor(.secondary)
+                Text("Badge Unlocked! ??").font(.caption).bold().foregroundColor(.secondary)
                 Text(badge.name).font(.subheadline).bold()
             }
             Spacer()

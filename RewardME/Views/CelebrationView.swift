@@ -1,4 +1,4 @@
-ï»¿import SwiftUI
+import SwiftUI
 
 // MARK: - Particle Shape
 private enum PShape { case rect, circle, star, streak }
@@ -15,7 +15,12 @@ private struct Particle {
     let rot0, rotSpeed: Double
     let lifespan: Double    // seconds this particle is alive after startTime
 
-    static let g: Double = 380  // gravity (px/sÂ²)
+    static let g: Double = 380  // gravity (px/s²)
+
+    // Alpha timing constants
+    private static let fadeInDuration    = 0.06   // particle fades in over this many seconds
+    private static let fadeOutStartRatio = 0.58   // fade-out begins at this fraction of lifespan
+    private static let fadeOutDuration   = 0.42   // remaining fraction over which fade-out completes
 
     func alive(at t: Double) -> Bool {
         let lt = t - startTime; return lt >= 0 && lt <= lifespan
@@ -31,9 +36,9 @@ private struct Particle {
         let lt = t - startTime
         guard lt >= 0 else { return 0 }
         if lt > lifespan { return 0 }
-        let fadeIn  = lt < 0.06 ? lt / 0.06 : 1.0
-        let fadeOut = lt > lifespan * 0.58
-            ? max(0, 1 - (lt - lifespan * 0.58) / (lifespan * 0.42))
+        let fadeIn  = lt < Self.fadeInDuration ? lt / Self.fadeInDuration : 1.0
+        let fadeOut = lt > lifespan * Self.fadeOutStartRatio
+            ? max(0, 1 - (lt - lifespan * Self.fadeOutStartRatio) / (lifespan * Self.fadeOutDuration))
             : 1.0
         return fadeIn * fadeOut
     }
@@ -152,7 +157,7 @@ struct CelebrationView: View {
             // Personalized greeting
             if !settings.userName.isEmpty {
                 VStack {
-                    Text("ðŸŽ‰ Great job, \(settings.userName)!")
+                    Text("?? Great job, \(settings.userName)!")
                         .font(.title2.bold())
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
@@ -261,7 +266,7 @@ struct CelebrationView: View {
 
         var result: [Particle] = []
 
-        // â€” Rocket trail (dots along the ascent path)
+        // — Rocket trail (dots along the ascent path)
         for j in 0 ..< 14 {
             let tFrac = Double(j) / 14.0
             let tAt   = tFrac * tPeak
@@ -280,7 +285,7 @@ struct CelebrationView: View {
             ))
         }
 
-        // â€” Burst at peak
+        // — Burst at peak
         let burstN: Int
         switch level {
         case .off, .mild: burstN = 0
@@ -308,7 +313,7 @@ struct CelebrationView: View {
             ))
         }
 
-        // â€” Sparkle streaks radiating out
+        // — Sparkle streaks radiating out
         let streakN = level == .absolutelyUnhinged ? 18 : 10
         for _ in 0 ..< streakN {
             let speed = CGFloat.random(in: 180 ... 460)

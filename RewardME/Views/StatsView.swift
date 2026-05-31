@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Stats View
 
 struct StatsView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
     @State private var selectedPeriod: StatPeriod = .week
 
     enum StatPeriod: String, CaseIterable {
@@ -52,7 +52,7 @@ struct StatsView: View {
         return HStack(spacing: 12) {
             statCard(value: "\(total)",    label: "Tasks",  icon: "checkmark.circle.fill", color: .green)
             statCard(value: "\(points)",   label: "Points", icon: "star.fill",             color: .yellow)
-            statCard(value: "\(vm.profile.currentStreak)🔥", label: "Streak", icon: "bolt.fill", color: .orange)
+            statCard(value: "\(viewModel.profile.currentStreak)🔥", label: "Streak", icon: "bolt.fill", color: .orange)
         }
         .padding(.horizontal)
     }
@@ -138,8 +138,8 @@ struct StatsView: View {
 
             VStack(spacing: 10) {
                 ForEach(TaskDifficulty.allCases) { diff in
-                    let count = vm.completedTasks.filter { $0.difficulty == diff }.count
-                    let pts   = vm.completedTasks.filter { $0.difficulty == diff }.reduce(0) { $0 + $1.pointsAwarded }
+                    let count = viewModel.completedTasks.filter { $0.difficulty == diff }.count
+                    let pts   = viewModel.completedTasks.filter { $0.difficulty == diff }.reduce(0) { $0 + $1.pointsAwarded }
                     difficultyRow(diff: diff, count: count, points: pts)
                 }
             }
@@ -172,9 +172,9 @@ struct StatsView: View {
 
     private var currentStats: [RewardViewModel.PeriodStat] {
         switch selectedPeriod {
-        case .week:  return vm.last7DayStats
-        case .month: return vm.last6MonthStats
-        case .year:  return vm.currentYearMonthlyStats
+        case .week:  return viewModel.last7DayStats
+        case .month: return viewModel.last6MonthStats
+        case .year:  return viewModel.currentYearMonthlyStats
         }
     }
 }

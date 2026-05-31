@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RewardsView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
     @EnvironmentObject private var settings: AppSettings
     @State private var showAddReward    = false
     @State private var editingReward: RewardDefinition? = nil
@@ -10,7 +10,7 @@ struct RewardsView: View {
     @State private var redeemFailed     = false
 
     private var sortedRewards: [RewardDefinition] {
-        vm.rewards.sorted { $0.pointCost < $1.pointCost }
+        viewModel.rewards.sorted { $0.pointCost < $1.pointCost }
     }
 
     var body: some View {
@@ -30,7 +30,7 @@ struct RewardsView: View {
                 .listRowInsets(EdgeInsets())
 
                 // ── Reward catalog ─────────────────────────────────────────
-                if vm.rewards.isEmpty {
+                if viewModel.rewards.isEmpty {
                     Section { emptyState }
                 } else {
                     Section("Your Rewards") {
@@ -38,7 +38,7 @@ struct RewardsView: View {
                             rewardRow(reward)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
-                                        vm.deleteReward(reward)
+                                        viewModel.deleteReward(reward)
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -54,7 +54,7 @@ struct RewardsView: View {
                 }
 
                 // ── History link ───────────────────────────────────────────
-                if !vm.redemptions.isEmpty {
+                if !viewModel.redemptions.isEmpty {
                     Section {
                         NavigationLink(destination: RedemptionHistoryView()) {
                             Label("Redemption History", systemImage: "clock.arrow.circlepath")
@@ -90,7 +90,7 @@ struct RewardsView: View {
             ) {
                 if let reward = pendingRedeem {
                     Button("Spend \(reward.pointCost) pts") {
-                        if !vm.redeemReward(reward) { redeemFailed = true }
+                        if !viewModel.redeemReward(reward) { redeemFailed = true }
                         pendingRedeem = nil
                     }
                     Button("Cancel", role: .cancel) {
@@ -99,7 +99,7 @@ struct RewardsView: View {
                 }
             } message: {
                 if let reward = pendingRedeem {
-                    Text("You have \(vm.profile.availablePoints) pts available. This will leave you with \(vm.profile.availablePoints - reward.pointCost) pts.")
+                    Text("You have \(viewModel.profile.availablePoints) pts available. This will leave you with \(viewModel.profile.availablePoints - reward.pointCost) pts.")
                 }
             }
             .alert("Not Enough Points", isPresented: $redeemFailed) {
@@ -117,12 +117,12 @@ struct RewardsView: View {
             Text("Available Points")
                 .font(.caption.weight(.medium))
                 .foregroundColor(.white.opacity(0.85))
-            Text("\(vm.profile.availablePoints)")
+            Text("\(viewModel.profile.availablePoints)")
                 .font(.system(size: 52, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
             HStack(spacing: 32) {
                 VStack(spacing: 2) {
-                    Text("\(vm.profile.totalPoints)")
+                    Text("\(viewModel.profile.totalPoints)")
                         .font(.subheadline.bold())
                         .foregroundColor(.white)
                     Text("Earned")
@@ -133,7 +133,7 @@ struct RewardsView: View {
                     .fill(Color.white.opacity(0.4))
                     .frame(width: 1, height: 32)
                 VStack(spacing: 2) {
-                    Text("\(vm.profile.spentPoints)")
+                    Text("\(viewModel.profile.spentPoints)")
                         .font(.subheadline.bold())
                         .foregroundColor(.white)
                     Text("Spent")
@@ -165,7 +165,7 @@ struct RewardsView: View {
                     .foregroundColor(.orange)
             }
             Spacer()
-            let canAfford = vm.profile.availablePoints >= reward.pointCost
+            let canAfford = viewModel.profile.availablePoints >= reward.pointCost
             Button {
                 pendingRedeem  = reward
                 showRedeemDialog = true

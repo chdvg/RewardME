@@ -15,65 +15,81 @@ final class DataStore {
     // MARK: - Tasks
 
     func saveTasks(_ tasks: [TaskItem]) {
-        if let data = try? JSONEncoder().encode(tasks) {
-            defaults.set(data, forKey: tasksKey)
+        do {
+            defaults.set(try JSONEncoder().encode(tasks), forKey: tasksKey)
+        } catch {
+            print("❌ DataStore: failed to save tasks — \(error.localizedDescription)")
         }
     }
 
     func loadTasks() -> [TaskItem] {
-        guard
-            let data  = defaults.data(forKey: tasksKey),
-            let tasks = try? JSONDecoder().decode([TaskItem].self, from: data)
-        else { return [] }
-        return tasks
+        guard let data = defaults.data(forKey: tasksKey) else { return [] }
+        do {
+            return try JSONDecoder().decode([TaskItem].self, from: data)
+        } catch {
+            print("❌ DataStore: failed to load tasks — \(error.localizedDescription)")
+            return []
+        }
     }
 
     // MARK: - Profile
 
     func saveProfile(_ profile: UserProfile) {
-        if let data = try? JSONEncoder().encode(profile) {
-            defaults.set(data, forKey: profileKey)
+        do {
+            defaults.set(try JSONEncoder().encode(profile), forKey: profileKey)
+        } catch {
+            print("❌ DataStore: failed to save profile — \(error.localizedDescription)")
         }
     }
 
     func loadProfile() -> UserProfile {
-        guard
-            let data    = defaults.data(forKey: profileKey),
-            let profile = try? JSONDecoder().decode(UserProfile.self, from: data)
-        else { return UserProfile() }
-        return profile
+        guard let data = defaults.data(forKey: profileKey) else { return UserProfile() }
+        do {
+            return try JSONDecoder().decode(UserProfile.self, from: data)
+        } catch {
+            print("❌ DataStore: failed to load profile — \(error.localizedDescription)")
+            return UserProfile()
+        }
     }
 
     // MARK: - Rewards
 
     func saveRewards(_ rewards: [RewardDefinition]) {
-        if let data = try? JSONEncoder().encode(rewards) {
-            defaults.set(data, forKey: rewardsKey)
+        do {
+            defaults.set(try JSONEncoder().encode(rewards), forKey: rewardsKey)
+        } catch {
+            print("❌ DataStore: failed to save rewards — \(error.localizedDescription)")
         }
     }
 
     func loadRewards() -> [RewardDefinition] {
-        guard
-            let data    = defaults.data(forKey: rewardsKey),
-            let rewards = try? JSONDecoder().decode([RewardDefinition].self, from: data)
-        else { return [] }
-        return rewards
+        guard let data = defaults.data(forKey: rewardsKey) else { return [] }
+        do {
+            return try JSONDecoder().decode([RewardDefinition].self, from: data)
+        } catch {
+            print("❌ DataStore: failed to load rewards — \(error.localizedDescription)")
+            return []
+        }
     }
 
     // MARK: - Redemptions
 
     func saveRedemptions(_ redemptions: [RedemptionRecord]) {
-        if let data = try? JSONEncoder().encode(redemptions) {
-            defaults.set(data, forKey: redemptionsKey)
+        do {
+            defaults.set(try JSONEncoder().encode(redemptions), forKey: redemptionsKey)
+        } catch {
+            print("❌ DataStore: failed to save redemptions — \(error.localizedDescription)")
         }
     }
 
     func loadRedemptions() -> [RedemptionRecord] {
-        guard
-            let data        = defaults.data(forKey: redemptionsKey),
-            let redemptions = try? JSONDecoder().decode([RedemptionRecord].self, from: data)
-        else { return [] }
-        return redemptions
+        guard let data = defaults.data(forKey: redemptionsKey) else { return [] }
+        do {
+            return try JSONDecoder().decode([RedemptionRecord].self, from: data)
+        } catch {
+            print("❌ DataStore: failed to load redemptions — \(error.localizedDescription)")
+            return []
+        }
     }
 
     // MARK: - Reset (for testing / debug)

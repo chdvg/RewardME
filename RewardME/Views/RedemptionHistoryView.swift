@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RedemptionHistoryView: View {
-    @EnvironmentObject private var vm: RewardViewModel
+    @EnvironmentObject private var viewModel: RewardViewModel
 
     private static let monthFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -20,7 +20,7 @@ struct RedemptionHistoryView: View {
     private var grouped: [(month: String, sortDate: Date, records: [RedemptionRecord])] {
         let fmt = Self.monthFormatter
         var dict: [String: (Date, [RedemptionRecord])] = [:]
-        for r in vm.redemptions {
+        for r in viewModel.redemptions {
             let key  = fmt.string(from: r.redeemedAt)
             let date = fmt.date(from: key) ?? Date.distantPast
             var (_, existing) = dict[key] ?? (date, [])
@@ -40,7 +40,7 @@ struct RedemptionHistoryView: View {
 
     var body: some View {
         List {
-            if vm.redemptions.isEmpty {
+            if viewModel.redemptions.isEmpty {
                 emptyState
             } else {
                 ForEach(grouped, id: \.month) { group in
