@@ -129,8 +129,11 @@ struct ProfileView: View {
             .alert("Reset All Data?", isPresented: $showResetAlert) {
                 Button("Reset", role: .destructive) {
                     DataStore.shared.reset()
-                    viewModel.tasks   = []
-                    viewModel.profile = UserProfile()
+                    viewModel.tasks               = []
+                    viewModel.profile             = UserProfile()
+                    viewModel.rewards             = []
+                    viewModel.redemptions         = []
+                    viewModel.recentlyEarnedBadges = []
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {

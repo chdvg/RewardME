@@ -11,7 +11,10 @@ struct RewardMEApp: App {
                 .environmentObject(viewModel)
                 .environmentObject(settings)
                 .onAppear {
-                    NotificationManager.shared.requestPermission()
+                    // Only request OS permission when the user has opted in via the in-app toggle.
+                    if settings.notificationsEnabled {
+                        NotificationManager.shared.requestPermission()
+                    }
                 }
         }
     }

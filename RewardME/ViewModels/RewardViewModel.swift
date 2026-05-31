@@ -373,7 +373,7 @@ final class RewardViewModel: ObservableObject {
             let cal   = Calendar.current
             let now   = Date()
             let start = cal.startOfDay(for: now)
-            guard let end = cal.date(byAdding: .day, value: 1, to: start) else { break }
+            guard let end = cal.date(byAdding: .day, value: 1, to: start) else { return result }
             switch due {
             case .all:      break
             case .overdue:  result = result.filter { $0.dueDate != nil && $0.dueDate! < start }
