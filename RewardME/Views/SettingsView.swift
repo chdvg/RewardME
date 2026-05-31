@@ -7,10 +7,10 @@ struct SettingsView: View {
     @State private var notificationPermissionDenied = false
 
     // Mirror the hour/minute as a single Date for the DatePicker.
+    // Initialised to a sensible default; .onAppear syncs it from the live settings instance.
     @State private var notificationTime: Date = {
-        var comps        = DateComponents()
-        comps.hour       = AppSettings.shared.notificationHour
-        comps.minute     = AppSettings.shared.notificationMinute
+        var comps  = DateComponents()
+        comps.hour = 9; comps.minute = 0
         return Calendar.current.date(from: comps) ?? .now
     }()
 

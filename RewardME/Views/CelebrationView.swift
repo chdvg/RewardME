@@ -157,7 +157,7 @@ struct CelebrationView: View {
             // Personalized greeting
             if !settings.userName.isEmpty {
                 VStack {
-                    Text("?? Great job, \(settings.userName)!")
+                    Text("🎉 Great job, \(settings.userName)!")
                         .font(.title2.bold())
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)

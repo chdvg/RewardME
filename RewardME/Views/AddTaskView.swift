@@ -23,7 +23,7 @@ struct AddTaskView: View {
 
     // Weekly
     @State private var weeklyInterval: Int = 1
-    @State private var weeklyDays: Set<Int> = []          // 1=Sun…7=Sat
+    @State private var weeklyDays: Set<Int> = []          // 1=Sunï¿½7=Sat
 
     // Monthly
     @State private var monthlyInterval: Int = 1
@@ -123,7 +123,7 @@ struct AddTaskView: View {
                 HStack {
                     Label("Streak bonus active", systemImage: "bolt.fill").font(.caption).foregroundColor(.orange)
                     Spacer()
-                    Text("?? \(viewModel.profile.currentStreak) days").font(.caption).foregroundColor(.orange)
+                    Text("ðŸ”¥ \(viewModel.profile.currentStreak) days").font(.caption).foregroundColor(.orange)
                 }
             }
         }
@@ -243,7 +243,7 @@ struct AddTaskView: View {
                 }
             }
             if weeklyDays.isEmpty {
-                Text("No days selected — repeats every \(weeklyInterval == 1 ? "week" : "\(weeklyInterval) weeks") from completion")
+                Text("No days selected ï¿½ repeats every \(weeklyInterval == 1 ? "week" : "\(weeklyInterval) weeks") from completion")
                     .font(.caption2).foregroundColor(.secondary)
             }
         }

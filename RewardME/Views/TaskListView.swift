@@ -310,7 +310,7 @@ struct BadgeToastView: View {
         HStack(spacing: 12) {
             Image(systemName: badge.icon).font(.title2).foregroundColor(.yellow)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Badge Unlocked! ??").font(.caption).bold().foregroundColor(.secondary)
+                Text("Badge Unlocked! 🏅").font(.caption).bold().foregroundColor(.secondary)
                 Text(badge.name).font(.subheadline).bold()
             }
             Spacer()
